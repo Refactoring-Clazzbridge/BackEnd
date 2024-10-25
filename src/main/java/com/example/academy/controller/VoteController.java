@@ -1,14 +1,13 @@
 package com.example.academy.controller;
 
 
-import com.example.academy.domain.Vote;
 import com.example.academy.dto.vote.AddVoteDTO;
+import com.example.academy.dto.vote.GetAllVoteDTO;
 import com.example.academy.dto.vote.GetVoteDTO;
 import com.example.academy.service.VoteService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,17 +34,15 @@ public class VoteController {
   @Operation(summary = "투표 전체 조회", security = {@SecurityRequirement(name = "bearerAuth")})
   @GetMapping
   public ResponseEntity<List<?>> getAllVote() {
-    List<GetVoteDTO> name = voteService.getAllVote();
+    List<GetAllVoteDTO> name = voteService.getAllVote();
     return ResponseEntity.ok(name);
   }
 
   @GetMapping("{id}")
   @Operation(summary = "투표 조회", security = {@SecurityRequirement(name = "bearerAuth")})
   public ResponseEntity<?> getVote(@PathVariable Long id) {
-    List<GetVoteDTO> title = voteService.getVote(id);
-    if (title.isEmpty()) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-    }
+    GetVoteDTO title = voteService.getVote(id);
+
     return ResponseEntity.status(HttpStatus.OK).body(title);
   }
 
