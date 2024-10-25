@@ -1,6 +1,6 @@
 package com.example.academy.dto.member;
 
-import com.example.academy.domain.mysql.Member;
+import com.example.academy.domain.Member;
 import com.example.academy.enums.MemberRole;
 import java.util.Collection;
 import java.util.Collections;

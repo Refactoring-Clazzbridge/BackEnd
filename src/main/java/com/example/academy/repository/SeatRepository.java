@@ -1,6 +1,6 @@
 package com.example.academy.repository;
 
-import com.example.academy.domain.mysql.Seat;
+import com.example.academy.domain.Seat;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

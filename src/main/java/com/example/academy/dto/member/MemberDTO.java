@@ -1,8 +1,8 @@
 package com.example.academy.dto.member;
 
 
-import com.example.academy.domain.mysql.MemberType;
-import com.example.academy.domain.mysql.AvatarImage;
+import com.example.academy.domain.MemberType;
+import com.example.academy.domain.AvatarImage;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -1,9 +1,9 @@
 package com.example.academy.service;
 
 
-import com.example.academy.domain.mysql.Course;
-import com.example.academy.domain.mysql.Member;
-import com.example.academy.domain.mysql.StudentCourse;
+import com.example.academy.domain.Course;
+import com.example.academy.domain.Member;
+import com.example.academy.domain.StudentCourse;
 import com.example.academy.dto.member.GetDetailMemberDTO;
 import com.example.academy.dto.member.GetMemberDTO;
 import com.example.academy.repository.mysql.CourseRepository;
@@ -33,7 +33,14 @@ public class MemberListService {
   }
 
   public String getCheckRole(Long id) {
-    return memberRepository.findById(id).get().getMemberType().getType();
+    String type = memberRepository.findById(id).get().getMemberType().getType();
+    if (type.equals("ROLE_STUDENT")) {
+      List<StudentCourse> courseTitle = studentCourseRepository.findByStudent(memberRepository.findById(id).get());
+      return courseTitle.get(0).getCourse().getTitle();
+    } else {
+      List<Course> courseTitle = courseRepository.findByInstructor(memberRepository.findById(id).get());
+      return courseTitle.get(0).getTitle();
+    }
   }
 
   public GetDetailMemberDTO getMemberWithCourseInfo(Long memberId) {
@@ -104,12 +111,10 @@ public class MemberListService {
       GetMemberDTO dto = new GetMemberDTO(
           member.getId(),
           member.getMemberId(),
-          member.getPassword(),
           member.getName(),
           member.getEmail(),
           member.getPhone(),
           member.getMemberType().getType(),
-          member.getAvatarImage(),
           courseTitle
       );
 

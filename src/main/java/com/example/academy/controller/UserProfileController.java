@@ -1,14 +1,18 @@
 package com.example.academy.controller;
 
 
-import com.example.academy.domain.mysql.Member;
+import com.example.academy.domain.Member;
+import com.example.academy.dto.auth.LoginRequestDTO;
+import com.example.academy.dto.auth.LoginResponseDTO;
+import com.example.academy.dto.member.MemberProfileUpdateDTO;
+import com.example.academy.service.LoginService;
 import com.example.academy.service.UserProfileService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,13 +29,15 @@ public class UserProfileController {
 
   @Autowired
   private UserProfileService userProfileService;
+  @Autowired
+  private LoginService loginService;
 
   @Autowired
   private BCryptPasswordEncoder passwordEncoder;
 
 
   @GetMapping("/{userId}")
-  @Operation(summary = "유저 조회", security = {@SecurityRequirement(name = "bearerAuth")})
+  @Operation(summary = "유저 조회")
   public ResponseEntity<Member> getUserProfileById(@PathVariable("userId") Long id) {
     Optional<Member> userProfile = userProfileService.getUserProfileById(id);
 
@@ -39,7 +45,7 @@ public class UserProfileController {
   }
 
   @PostMapping
-  @Operation(summary = "비밀번호 체크", security = {@SecurityRequirement(name = "bearerAuth")})
+  @Operation(summary = "비밀번호 체크")
   public ResponseEntity<Map<String, Boolean>> checkPassword(
       @RequestBody Map<String, String> request) {
     String inputPassword = request.get("password"); // 입력된 비밀번호
@@ -58,9 +64,23 @@ public class UserProfileController {
   }
 
   @PutMapping
-  @Operation(summary = "유저 정보 변경", security = {@SecurityRequirement(name = "bearerAuth")})
-  public ResponseEntity<Member> updateUserProfile(@RequestBody Member userProfile) {
-    Member updatedProfile = userProfileService.createOrUpdateUserProfile(userProfile);
-    return ResponseEntity.ok(updatedProfile); // 데이터 저장 후 응답
+  @Operation(summary = "유저 정보 변경")
+  public ResponseEntity<String> updateUserProfile(@RequestBody MemberProfileUpdateDTO updateDTO) {
+    try {
+      userProfileService.createOrUpdateUserProfile(updateDTO);
+      return ResponseEntity.ok().body("회원 정보 업데이트 성공");
+    } catch (DataIntegrityViolationException e) {
+      return ResponseEntity.badRequest().body("회원 정보 업데이트 실패: " + e.getMessage());
+    } catch (RuntimeException e) {
+      // 예외 발생 시, 에러 메시지와 함께 400 Bad Request 응답 반환
+      return ResponseEntity.badRequest().body("회원 정보 업데이트 실패: " + e.getMessage());
+    }
+  }
+
+  @PostMapping("update")
+  @Operation(summary = "사용자 로그인")
+  public ResponseEntity<LoginResponseDTO> update(@RequestBody LoginRequestDTO loginRequestDTO) {
+
+    return loginService.updateUserInfo(loginRequestDTO.getMemberId(), loginRequestDTO.getPassword());
   }
 }

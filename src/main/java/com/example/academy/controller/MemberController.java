@@ -34,8 +34,8 @@ public class MemberController {
   }
 
   @GetMapping("/check/{userId}")
-  @Operation(summary = "권한 확인", security = {@SecurityRequirement(name = "bearerAuth")})
-  public ResponseEntity<?> roleCheck(@PathVariable Long userId) {
+  @Operation(summary = "강의 확인", security = {@SecurityRequirement(name = "bearerAuth")})
+  public ResponseEntity<?> courseCheck(@PathVariable Long userId) {
     return ResponseEntity.ok(memberListService.getCheckRole(userId));
   }
 

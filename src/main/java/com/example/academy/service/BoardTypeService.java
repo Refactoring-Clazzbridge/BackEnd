@@ -1,7 +1,9 @@
 package com.example.academy.service;
 
-import com.example.academy.domain.mysql.BoardType;
-import com.example.academy.dto.boardType.BoardTypeSaveDTO;
+import com.example.academy.domain.BoardType;
+import com.example.academy.dto.boardType.BoardTypeDTO;
+import com.example.academy.dto.boardType.BoardUpdateTypeDTO;
+import com.example.academy.exception.common.NotFoundException;
 import com.example.academy.repository.mysql.BoardTypeRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -21,16 +23,29 @@ public class BoardTypeService {
         return boardTypeRepository.findAll();
     }
 
-    public BoardType save(BoardTypeSaveDTO boardTypeSaveDTO) {
-        BoardType boardType = new BoardType(boardTypeSaveDTO.getType());
+    @Transactional
+    public BoardType save(BoardTypeDTO boardTypeDTO) {
+        BoardType boardType = new BoardType(boardTypeDTO.getType());
         boardTypeRepository.save(boardType);
         return boardType;
     }
 
-    public BoardType update() {
-        return null;
+    @Transactional
+    public BoardType update(BoardUpdateTypeDTO boardTypeDTO) {
+
+        BoardType boardType = boardTypeRepository.findById(boardTypeDTO.getId())
+            .orElseThrow(() -> new NotFoundException("해당 카테고리가 없습니다."));
+
+        boardType.setType(boardTypeDTO.getType());
+
+        return boardType;
     }
 
+    @Transactional
     public void delete(Long id) {
+        BoardType boardType = boardTypeRepository.findById(id)
+            .orElseThrow(() -> new NotFoundException("해당 카테고리가 없습니다."));
+
+        boardTypeRepository.delete(boardType);
     }
 }

@@ -1,17 +1,20 @@
 package com.example.academy.service;
 
-import static java.lang.Boolean.FALSE;
-
-import com.example.academy.domain.mysql.Classroom;
+import com.example.academy.domain.Classroom;
+import com.example.academy.domain.Course;
 import com.example.academy.dto.classroom.AddClassroomDTO;
 import com.example.academy.dto.classroom.ClassroomNameDTO;
-import com.example.academy.dto.classroom.GetClassroomDTO;
 import com.example.academy.dto.classroom.UpdateClassroomDTO;
 import com.example.academy.repository.mysql.ClassroomRepository;
+import com.example.academy.repository.mysql.CourseRepository;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToOne;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,15 +22,16 @@ public class ClassroomService {
 
 
   private final ClassroomRepository classroomRepository;
+  private final CourseRepository courseRepository;
 
-
-  public ClassroomService(ClassroomRepository classroomRepository) {
+  public ClassroomService(ClassroomRepository classroomRepository,
+      CourseRepository courseRepository) {
     this.classroomRepository = classroomRepository;
+    this.courseRepository = courseRepository;
   }
 
   public void addClassroom(AddClassroomDTO addClassroomDTO) {
     String name =  addClassroomDTO.getName();
-
     Classroom classroom = new Classroom();
     classroom.setName(name);
     classroom.setIsOccupied(false);
@@ -39,7 +43,6 @@ public class ClassroomService {
 
     Long id = updateClassroomDTO.getId();
     String name = updateClassroomDTO.getName();
-    Boolean isOccupied = updateClassroomDTO.getIsOccupied();
 
 
     Optional<Classroom> classroom = classroomRepository.findById(id);
@@ -50,7 +53,6 @@ public class ClassroomService {
 
     newClassroom.setId(id);
     newClassroom.setName(name);
-    newClassroom.setIsOccupied(isOccupied);
 
     return classroomRepository.save(newClassroom);
   }
@@ -63,6 +65,27 @@ public class ClassroomService {
   }
 
   public List<Classroom> getAllClassroom(){
+    LocalDate now = LocalDate.now();
+    List<Course> courses =   courseRepository.findAll();
+    for (Course cours1 : courses) {
+      if (now.isAfter(cours1.getEndDate()) && now.isAfter(cours1.getStartDate())
+          // 현재 > 종료날짜 , 현재 > 시작날짜
+      || now.isBefore(cours1.getStartDate())) {
+          // 현재 < 시작날짜
+        cours1.getClassroom().setIsOccupied(false);
+      }
+      courseRepository.save(cours1);
+    }
+
+    for (Course cours2 : courses) {
+      if (now.isBefore(cours2.getEndDate()) && now.isAfter(cours2.getStartDate()) ) {
+        // 현재 < 종료,  현재 > 시작
+        cours2.getClassroom().setIsOccupied(true);
+      }
+      courseRepository.save(cours2);
+    }
+  //강의 시작날짜가 현재보다 빠르고 종료날짜가 느린 값들은 Ture 아니면 false;
+
     return classroomRepository.findAll();
   }
 
@@ -75,7 +98,11 @@ public class ClassroomService {
   }
 
 
-  public void deleteClassroom(Long id){
-    classroomRepository.deleteById(id);
+  public void deleteClassroom(Long id) throws Exception{
+    try {
+      classroomRepository.deleteById(id);
+    } catch (Exception e) {
+      throw new Exception("잘못된 삭제입니다.");
+    }
   }
 }
