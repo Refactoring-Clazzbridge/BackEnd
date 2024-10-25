@@ -6,6 +6,7 @@ import com.example.academy.domain.Vote;
 import com.example.academy.domain.VoteOption;
 import com.example.academy.dto.member.CustomUserDetails;
 import com.example.academy.dto.vote.AddVoteDTO;
+import com.example.academy.dto.vote.DoVoteDTO;
 import com.example.academy.dto.vote.GetAllVoteDTO;
 import com.example.academy.dto.vote.GetVoteDTO;
 import com.example.academy.enums.MemberRole;
@@ -73,11 +74,10 @@ public class VoteService {
     vote.setIsExpired(false);
 
     // Vote_option 객체 생성
-    String[] optionStrings = addVoteDTO.getOptionText().split(",");
     List<VoteOption> voteOptions = new ArrayList<>();
-    for (String optionString : optionStrings) {
+    for (String optionText : addVoteDTO.getOptionText()) { // 수정: List<String>을 사용
       VoteOption option = new VoteOption();
-      option.setOptionText(optionString);
+      option.setOptionText(optionText);
       option.setVote(vote);
 
       voteOptions.add(option);
@@ -87,23 +87,9 @@ public class VoteService {
     voteOptionRepository.saveAll(voteOptions);
   }
 
-//  public Vote updateVote(UpdateVoteDTO updateVoteDTO) {
-//
-//    Long id = updateVoteDTO.getId();
-//    String title = updateVoteDTO.getTitle();
-//
-//
-//    Optional<Vote> vote = VoteRepository.findById(id);
-//    if (vote.isEmpty()) {
-//      throw new NoSuchElementException("해당 투표가 없습니다.");
-//    }
-//    Vote newvVote = vote.get();
-//
-//    newvVote.setId(id);
-//    newvVote.setTitle(title);
-//
-//    return voteRepository.save(newvVote);
-//  }
+  public void doVote(DoVoteDTO doVoteDTO) {
+
+  }
 
   public List<GetAllVoteDTO> getAllVote() {
     LocalDateTime now = LocalDateTime.now();

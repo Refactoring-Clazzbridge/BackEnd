@@ -2,6 +2,7 @@ package com.example.academy.controller;
 
 
 import com.example.academy.dto.vote.AddVoteDTO;
+import com.example.academy.dto.vote.DoVoteDTO;
 import com.example.academy.dto.vote.GetAllVoteDTO;
 import com.example.academy.dto.vote.GetVoteDTO;
 import com.example.academy.service.VoteService;
@@ -52,6 +53,17 @@ public class VoteController {
     try {
       voteService.addVote(addVoteDTO);
       return ResponseEntity.ok("추가완료");
+    } catch (Exception e) {
+      return ResponseEntity.badRequest().body(e.getMessage());
+    }
+  }
+
+  @PostMapping
+  @Operation(summary = "투표 선택", security = {@SecurityRequirement(name = "bearerAuth")})
+  public ResponseEntity<?> doVote(@RequestBody DoVoteDTO doVoteDTO) {
+    try {
+
+      return ResponseEntity.ok("선택완료");
     } catch (Exception e) {
       return ResponseEntity.badRequest().body(e.getMessage());
     }
