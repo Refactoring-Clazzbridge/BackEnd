@@ -19,7 +19,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -73,12 +72,17 @@ public class VoteService {
     vote.setEndDate(addVoteDTO.getEndDate());
     vote.setIsExpired(false);
 
-    for (VoteOption option : addVoteDTO.getOptionText()) {
-      option.setVote(vote); // Vote와 VoteOption 연관 설정
+    // Vote_option 객체 생성
+    String[] optionStrings = addVoteDTO.getOptionText().split(",");
+    for (String optionString : optionStrings) {
+      VoteOption option = new VoteOption();
+      option.setOptionText(optionString);
+      option.setVote(vote);
+
+      voteOptionRepository.save(option);
     }
 
     voteRepository.save(vote);
-    voteOptionRepository.saveAll(addVoteDTO.getOptionText());
   }
 
 //  public Vote updateVote(UpdateVoteDTO updateVoteDTO) {
@@ -129,7 +133,8 @@ public class VoteService {
       options.add(option.getOptionText());
     }
 
-    GetVoteDTO getVoteDTO = new GetVoteDTO(vote.getId(), vote.getCourse().getTitle(), vote.getTitle(), vote.getDescription(), vote.getStartDate(),
+    GetVoteDTO getVoteDTO = new GetVoteDTO(vote.getId(), vote.getCourse().getTitle(),
+        vote.getTitle(), vote.getDescription(), vote.getStartDate(),
         vote.getEndDate(), vote.getIsExpired(), options);
 
     return getVoteDTO;
