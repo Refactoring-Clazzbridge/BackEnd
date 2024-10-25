@@ -74,15 +74,17 @@ public class VoteService {
 
     // Vote_option 객체 생성
     String[] optionStrings = addVoteDTO.getOptionText().split(",");
+    List<VoteOption> voteOptions = new ArrayList<>();
     for (String optionString : optionStrings) {
       VoteOption option = new VoteOption();
       option.setOptionText(optionString);
       option.setVote(vote);
 
-      voteOptionRepository.save(option);
+      voteOptions.add(option);
     }
 
     voteRepository.save(vote);
+    voteOptionRepository.saveAll(voteOptions);
   }
 
 //  public Vote updateVote(UpdateVoteDTO updateVoteDTO) {
