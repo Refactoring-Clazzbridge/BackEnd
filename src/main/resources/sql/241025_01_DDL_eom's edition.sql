@@ -48,6 +48,7 @@ ALTER TABLE seat
     DROP FOREIGN KEY FK_member_TO_seat; -- 멤버 -> 좌석
 ALTER TABLE seat
     DROP FOREIGN KEY FK_course_TO_seat;
+
 -- 강의 -> 좌석
 
 -- 학생_강의
@@ -110,6 +111,9 @@ DROP TABLE IF EXISTS avatar_image RESTRICT;
 -- 질문
 DROP TABLE IF EXISTS question RESTRICT;
 
+-- 답변
+DROP TABLE IF EXISTS answer RESTRICT;
+
 -- 일정
 DROP TABLE IF EXISTS schedule RESTRICT;
 
@@ -138,7 +142,7 @@ DROP TABLE IF EXISTS vote_option RESTRICT;
 CREATE TABLE assignment
 (
     id          INT AUTO_INCREMENT NOT NULL PRIMARY KEY COMMENT '과제 ID', -- 과제 ID
-    course_id   INT                NOT NULL COMMENT '강의 ID',             -- 강의 ID
+    course_id   INT                COMMENT '강의 ID',             -- 강의 ID
     title       VARCHAR(100)       NOT NULL COMMENT '제목',                -- 제목
     description TEXT               NOT NULL COMMENT '설명',                -- 설명
     due_date    DATE               NOT NULL COMMENT '기한'                 -- 기한
@@ -225,18 +229,32 @@ CREATE TABLE avatar_image
     COMMENT '아바타사진';
 
 -- 질문
+-- 질문 테이블 (기존 테이블 수정)
 CREATE TABLE question
 (
     id                INT AUTO_INCREMENT NOT NULL PRIMARY KEY COMMENT '질문 ID', -- 질문 ID
-    student_course_id INT                NOT NULL COMMENT '수강번호',              -- 수강번호
-    content           TEXT               NOT NULL COMMENT '질문',                -- 질문
-    created_at        DATETIME           NOT NULL COMMENT '질문일자',              -- 질문일자
-    ai_answer         TEXT               NULL COMMENT 'AI자동답변',                -- AI자동답변
-    teacher_answer    TEXT               NULL COMMENT '강사답변',                  -- 강사답변
-    answered_at       DATETIME           NULL COMMENT '답변일자',                  -- 답변일자
-    is_recommended    BOOLEAN            NULL COMMENT '추천여부'                   -- 추천여부
-)
+    student_course_id INT                NOT NULL COMMENT '수강번호',             -- 수강번호 (외래키)
+    content           TEXT               NOT NULL COMMENT '질문',               -- 질문 내용
+    created_at        DATETIME           NOT NULL COMMENT '질문일자',             -- 질문일자
+    ai_answer         TEXT               NULL COMMENT 'AI자동답변',               -- AI 자동 답변
+    is_recommended    BOOLEAN            NULL COMMENT '추천여부'                 -- 추천 여부
+);
+
     COMMENT '질문';
+
+    -- 답변
+CREATE TABLE answer
+(
+        id              INT AUTO_INCREMENT NOT NULL PRIMARY KEY COMMENT '답변 ID', -- 답변 ID
+        question_id     INT                NOT NULL COMMENT '질문 ID',             -- 질문 ID (외래키)
+        teacher_id      INT                NOT NULL COMMENT '교사 ID',             -- 교사 ID (외래키)
+        content         TEXT               NOT NULL COMMENT '답변 내용',           -- 답변 내용
+        created_at      DATETIME           NOT NULL COMMENT '답변일자'            -- 답변일자
+);
+
+    COMMENT '답변';
+
+
 
 -- 일정
 CREATE TABLE schedule
@@ -254,11 +272,12 @@ CREATE TABLE schedule
 CREATE TABLE seat
 (
     id           INT AUTO_INCREMENT NOT NULL PRIMARY KEY COMMENT '좌석 ID', -- 좌석 ID
-    classroom_id INT                NOT NULL COMMENT '강의 ID',             -- 강의 ID
+    course_id INT                NOT NULL COMMENT '강의 ID',             -- 강의 ID
     seat_number  VARCHAR(10)        NOT NULL COMMENT '좌석 번호',             -- 좌석 번호
     member_id    INT                NULL COMMENT '멤버 ID',                 -- 멤버 ID
     is_exist     BOOLEAN            NOT NULL COMMENT '존재 여부',             -- 존재 여부
     is_online    BOOLEAN            NOT NULL COMMENT '온라인 여부'             -- 온라인 여부
+    
 )
     COMMENT '좌석';
 
@@ -461,6 +480,20 @@ ALTER TABLE question
                                        id -- 수강번호
                 )ON DELETE CASCADE;
 
+-- 답변
+ALTER TABLE answer
+    ADD CONSTRAINT FK_question_TO_answer -- 질문 -> 답변
+        FOREIGN KEY (question_id)        -- 질문 ID
+        REFERENCES question(id)          -- 질문 테이블의 질문 ID 참조
+        ON DELETE CASCADE;
+
+-- 답변
+ALTER TABLE answer
+    ADD CONSTRAINT FK_teacher_TO_answer -- 교사 -> 답변
+        FOREIGN KEY (teacher_id)        -- 교사 ID
+        REFERENCES member(id)           -- 교사(member) 테이블의 교사 ID 참조
+        ON DELETE CASCADE;
+
 -- 일정
 ALTER TABLE schedule
     ADD CONSTRAINT FK_course_TO_schedule -- 강의 -> 일정
@@ -485,7 +518,7 @@ ALTER TABLE seat
 ALTER TABLE seat
     ADD CONSTRAINT FK_course_TO_seat -- 강의 -> 좌석
         FOREIGN KEY (
-                     classroom_id -- 강의 ID
+                     course_id -- 강의 ID
             )
             REFERENCES course ( -- 강의
                                id -- 강의 ID

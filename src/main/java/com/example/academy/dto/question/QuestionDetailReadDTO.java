@@ -1,6 +1,8 @@
 package com.example.academy.dto.question;
 
+import com.example.academy.dto.answer.AnswerReadDTO;
 import java.util.Date;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -14,7 +16,7 @@ public class QuestionDetailReadDTO {
   private String content;
   private boolean isRecommended;
   private Date createdAt;
-  private Date answeredAt;
   private String aiAnswer;
-  private String teacherAnswer;
+
+  private List<AnswerReadDTO> answers;
 }

@@ -4,13 +4,12 @@ import com.example.academy.domain.mysql.Course;
 import com.example.academy.domain.mysql.Member;
 import com.example.academy.domain.mysql.Question;
 import com.example.academy.domain.mysql.StudentCourse;
+import com.example.academy.dto.answer.AnswerReadDTO;
 import com.example.academy.dto.question.QuestionCreateDTO;
 import com.example.academy.dto.question.QuestionDetailReadDTO;
 import com.example.academy.dto.question.QuestionReadDTO;
 import com.example.academy.dto.question.QuestionToggleRecommendedDTO;
 import com.example.academy.dto.question.QuestionUpdateDTO;
-import com.example.academy.dto.question.TeacherAnswerCreateDTO;
-import com.example.academy.dto.question.TeacherAnswerUpdateDTO;
 import com.example.academy.exception.post.PostEmptyException;
 import com.example.academy.exception.post.PostNotFoundException;
 import com.example.academy.mapper.question.QuestionMapper;
@@ -31,24 +30,26 @@ public class QuestionService {
   private final QuestionRepository questionRepository;
   private final MemberRepository memberRepository;
   private final StudentCourseRepository studentCourseRepository;
-  private final QuestionMapper questionMapper = QuestionMapper.INSTANCE;
   private final CourseRepository courseRepository;
+  private final AnswerService answerService;
+  private final QuestionMapper questionMapper = QuestionMapper.INSTANCE;
 
   @Autowired
   public QuestionService(QuestionRepository questionRepository, MemberRepository memberRepository,
-      StudentCourseRepository studentCourseRepository, CourseRepository courseRepository) {
+      StudentCourseRepository studentCourseRepository, CourseRepository courseRepository, AnswerService answerService) {
     this.questionRepository = questionRepository;
     this.memberRepository = memberRepository;
     this.studentCourseRepository = studentCourseRepository;
     this.courseRepository = courseRepository;
+    this.answerService = answerService;
   }
 
   public List<QuestionReadDTO> getAllQuestions() {
     List<Question> questions = questionRepository.findAll();
     List<QuestionReadDTO> questionReadDTOs = new ArrayList<>();
     for (Question question : questions) {
-      questionReadDTOs.add(questionMapper.questionToQuestionReadDTO(question,
-          question.getTeacherAnswer() != null));
+      boolean isSolved = !question.getAnswers().isEmpty();
+      questionReadDTOs.add(questionMapper.questionToQuestionReadDTO(question, isSolved));
     }
     return questionReadDTOs;
   }
@@ -57,26 +58,24 @@ public class QuestionService {
     Question question = questionRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("존재하지 않는 질문입니다 ID: " + id));
 
-    return questionMapper.questionToQuestionDetailReadDTO(question);
+    // 연관된 답변도 조회
+    List<AnswerReadDTO> answers = answerService.getAnswersByQuestionId(id);
+    return questionMapper.questionToQuestionDetailReadDTO(question, answers);
   }
 
   public QuestionReadDTO createQuestion(QuestionCreateDTO questionCreateDTO) {
     Member student = memberRepository.findById(questionCreateDTO.getMemberId())
-        .orElseThrow(
-            () -> new RuntimeException("존재하지 않는 회원입니다 ID: " + questionCreateDTO.getMemberId()));
+        .orElseThrow(() -> new RuntimeException("존재하지 않는 회원입니다 ID: " + questionCreateDTO.getMemberId()));
     Course course = courseRepository.findById(questionCreateDTO.getCourseId())
-        .orElseThrow(
-            () -> new RuntimeException("존재하지 않는 강의입니다 ID: " + questionCreateDTO.getCourseId()));
+        .orElseThrow(() -> new RuntimeException("존재하지 않는 강의입니다 ID: " + questionCreateDTO.getCourseId()));
     StudentCourse studentCourse = studentCourseRepository.findByStudentIdAndCourseId(
             student.getId(), course.getId())
         .orElseThrow(() -> new RuntimeException("회원이 수강"));
 
-    Question newQuestion = questionMapper.questionCreateDTOToQuestion(questionCreateDTO,
-        studentCourse);
+    Question newQuestion = questionMapper.questionCreateDTOToQuestion(questionCreateDTO, studentCourse);
     Question savedQuestion = questionRepository.save(newQuestion);
 
-    return questionMapper.questionToQuestionReadDTO(savedQuestion,
-        savedQuestion.getTeacherAnswer() != null);
+    return questionMapper.questionToQuestionReadDTO(savedQuestion, false);
   }
 
   public QuestionReadDTO updateQuestion(QuestionUpdateDTO questionUpdateDTO) {
@@ -86,20 +85,19 @@ public class QuestionService {
     existingQuestion.updateContent(questionUpdateDTO.getContent());
     questionRepository.save(existingQuestion);
 
-    return questionMapper.questionToQuestionReadDTO(existingQuestion,
-        existingQuestion.getTeacherAnswer() != null);
+    boolean isSolved = !existingQuestion.getAnswers().isEmpty();
+    return questionMapper.questionToQuestionReadDTO(existingQuestion, isSolved);
   }
 
-  public QuestionReadDTO recommendQuestion(
-      QuestionToggleRecommendedDTO questionToggleRecommendedDTO) {
+  public QuestionReadDTO recommendQuestion(QuestionToggleRecommendedDTO questionToggleRecommendedDTO) {
     Question existingQuestion = questionRepository.findById(questionToggleRecommendedDTO.getId())
         .orElseThrow();
 
     existingQuestion.toggleRecommended(questionToggleRecommendedDTO.isRecommended());
     questionRepository.save(existingQuestion);
 
-    return questionMapper.questionToQuestionReadDTO(existingQuestion,
-        existingQuestion.getTeacherAnswer() != null);
+    boolean isSolved = !existingQuestion.getAnswers().isEmpty();
+    return questionMapper.questionToQuestionReadDTO(existingQuestion, isSolved);
   }
 
   public void deleteQuestion(List<Long> ids) {
@@ -112,43 +110,5 @@ public class QuestionService {
           .orElseThrow(() -> new PostNotFoundException(id));
       questionRepository.delete(deletedQuestion);
     }
-  }
-
-
-  public String getTeacherAnswerById(Long id) {
-    Question existingQuestion = questionRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Question not found"));
-
-    return existingQuestion.getTeacherAnswer();
-  }
-
-  public QuestionDetailReadDTO createTeacherAnswer(TeacherAnswerCreateDTO teacherAnswerCreateDTO) {
-    Question existingQuestion = questionRepository.findById(teacherAnswerCreateDTO.getQuestionId())
-        .orElseThrow(() -> new RuntimeException("Question not found"));
-
-    existingQuestion.updateTeacherAnswer(teacherAnswerCreateDTO.getTeacherAnswer());
-    Question createdQuestion = questionRepository.save(existingQuestion);
-
-    return questionMapper.questionToQuestionDetailReadDTO(createdQuestion);
-  }
-
-  public QuestionDetailReadDTO updateTeacherAnswer(TeacherAnswerUpdateDTO teacherAnswerUpdateDTO) {
-    Question existingQuestion = questionRepository.findById(teacherAnswerUpdateDTO.getQuestionId())
-        .orElseThrow(() -> new RuntimeException("Question not found"));
-
-    existingQuestion.updateTeacherAnswer(teacherAnswerUpdateDTO.getTeacherAnswer());
-    Question updatedQuestion = questionRepository.save(existingQuestion);
-
-    return questionMapper.questionToQuestionDetailReadDTO(updatedQuestion);
-  }
-
-  public QuestionDetailReadDTO deleteTeacherAnswer(Long id) {
-    Question existingQuestion = questionRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Question not found"));
-
-    existingQuestion.updateTeacherAnswer(null);
-    Question updatedQuestion = questionRepository.save(existingQuestion);
-
-    return questionMapper.questionToQuestionDetailReadDTO(updatedQuestion);
   }
 }
