@@ -5,6 +5,7 @@ import com.example.academy.dto.vote.AddVoteDTO;
 import com.example.academy.dto.vote.DoVoteDTO;
 import com.example.academy.dto.vote.GetAllVoteDTO;
 import com.example.academy.dto.vote.GetVoteDTO;
+import com.example.academy.dto.vote.GetVoteInfoDTO;
 import com.example.academy.service.VoteService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -47,6 +48,14 @@ public class VoteController {
     return ResponseEntity.status(HttpStatus.OK).body(title);
   }
 
+  @GetMapping("/detail/{id}")
+  @Operation(summary = "투표 상세 조회", security = {@SecurityRequirement(name = "bearerAuth")})
+  public ResponseEntity<GetVoteInfoDTO> getVoteInfo(@PathVariable Long id) {
+    GetVoteInfoDTO voteInfo = voteService.getVoteInfo(id);
+
+    return ResponseEntity.status(HttpStatus.OK).body(voteInfo);
+  }
+
   @PostMapping
   @Operation(summary = "투표 추가", security = {@SecurityRequirement(name = "bearerAuth")})
   public ResponseEntity<String> addVote(@RequestBody AddVoteDTO addVoteDTO) {
@@ -62,7 +71,7 @@ public class VoteController {
   @Operation(summary = "투표 선택", security = {@SecurityRequirement(name = "bearerAuth")})
   public ResponseEntity<?> doVote(@RequestBody DoVoteDTO doVoteDTO) {
     try {
-
+      voteService.doVote(doVoteDTO);
       return ResponseEntity.ok("선택완료");
     } catch (Exception e) {
       return ResponseEntity.badRequest().body(e.getMessage());

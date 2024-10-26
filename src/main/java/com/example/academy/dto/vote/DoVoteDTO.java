@@ -13,5 +13,4 @@ public class DoVoteDTO {
 
   private Long voteId;
   private Long voteOptionId;
-
 }
