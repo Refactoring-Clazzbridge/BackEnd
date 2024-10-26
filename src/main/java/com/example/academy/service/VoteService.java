@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import javax.persistence.NonUniqueResultException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -107,9 +108,12 @@ public class VoteService {
     GetVoteInfoDTO getVoteInfoDTO = new GetVoteInfoDTO();
 
     // 투표 정보 상세조회 설정 위한 데이터 조회
+    List<VoteResponse> voteResponsesForVote = voteResponseRepository.findByVote(vote);
     List<VoteOption> voteOptions = voteOptionRepository.findByVote(vote);
     List<StudentCourse> studentCourses = studentCourseRepository.findByCourseId(
         vote.getCourse().getId());
+
+    getVoteInfoDTO.setVoteOptionInfoList(new ArrayList<>());
     List<VoteOptionInfo> voteOptionInfos = getVoteInfoDTO.getVoteOptionInfoList();
 
     // 기존 데이터로부터 상세 조회 기본 데이터 설정
@@ -119,16 +123,20 @@ public class VoteService {
     getVoteInfoDTO.setIsExpired(vote.getIsExpired());
 
     // 기존 데이터를 가공하여 진행률, 투표 인원 계산
-    getVoteInfoDTO.setProgressRate(voteOptions.size() / studentCourses.size() * 100 + "%");
-    getVoteInfoDTO.setCurrentParticipants(voteOptions.size() + "/" + studentCourses.size());
+    getVoteInfoDTO.setProgressRate(
+        (Math.round((voteResponsesForVote.size() * 1.0 / studentCourses.size()) * 100)) + "%");
+    getVoteInfoDTO.setCurrentParticipants(
+        voteResponsesForVote.size() + "/" + studentCourses.size());
 
     // 투표 옵션별 투표 결과 조회
     for (int i = 0; i < voteOptions.size(); i++) {
+      voteOptionInfos.add(new VoteOptionInfo());
       List<VoteResponse> voteResponses = voteResponseRepository.findByVoteOptionId(
           voteOptions.get(i).getId());
       voteOptionInfos.get(i).setOptionText(voteOptions.get(i).getOptionText());
       voteOptionInfos.get(i)
-          .setOccupancyRate(voteResponses.size() / studentCourses.size() * 100 + "%");
+          .setOccupancyRate(
+              Math.round(voteResponses.size() * 1.0 / voteResponsesForVote.size() * 100) + "%");
       voteOptionInfos.get(i).setVotes(String.valueOf(voteResponses.size()));
     }
 
@@ -152,37 +160,41 @@ public class VoteService {
   }
 
   public void doVote(DoVoteDTO doVoteDTO) {
-    CustomUserDetails user = authService.getAuthenticatedUser();
+    try {
+      CustomUserDetails user = authService.getAuthenticatedUser();
 
-    Member member = memberRepository.findById(user.getUserId())
-        .orElseThrow(PostBadRequestException::new);
+      Member member = memberRepository.findById(user.getUserId())
+          .orElseThrow(PostBadRequestException::new);
 
-    Vote vote = voteRepository.findById(doVoteDTO.getVoteId())
-        .orElseThrow(NotFoundException::new);
+      Vote vote = voteRepository.findById(doVoteDTO.getVoteId())
+          .orElseThrow(NotFoundException::new);
 
-    if (vote.getIsExpired()) {
-      throw new PostBadRequestException("만료된 투표입니다.");
-    }
-
-    // 투표 중복 방지
-    List<VoteResponse> voteResponses = voteResponseRepository.findByVote(vote);
-    for (VoteResponse voteResponse : voteResponses) {
-      if (voteResponse.getStudentCourse().getStudent().getId().equals(member.getId())) {
-        throw new PostBadRequestException("이미 투표한 학생입니다.");
+      if (vote.getIsExpired()) {
+        throw new PostBadRequestException("만료된 투표입니다.");
       }
+
+      // 투표 중복 방지
+      List<VoteResponse> voteResponses = voteResponseRepository.findByVote(vote);
+      for (VoteResponse voteResponse : voteResponses) {
+        if (voteResponse.getStudentCourse().getStudent().getId().equals(member.getId())) {
+          throw new PostBadRequestException("이미 투표한 학생입니다.");
+        }
+      }
+
+      // 투표 옵션 확인
+      VoteOption voteOption = voteOptionRepository.findById(doVoteDTO.getVoteOptionId())
+          .orElseThrow(NotFoundException::new);
+
+      // 투표 응답 객체 생성
+      VoteResponse voteResponse = new VoteResponse();
+      voteResponse.setVote(vote);
+      voteResponse.setStudentCourse(studentCourseRepository.findByStudent(member));
+      voteResponse.setVoteOption(voteOption);
+
+      voteResponseRepository.save(voteResponse);
+    } catch (NonUniqueResultException e) {
+      throw new PostBadRequestException("투표 중복 오류입니다.");
     }
-
-    // 투표 옵션 확인
-    VoteOption voteOption = voteOptionRepository.findById(doVoteDTO.getVoteOptionId())
-        .orElseThrow(NotFoundException::new);
-
-    // 투표 응답 객체 생성
-    VoteResponse voteResponse = new VoteResponse();
-    voteResponse.setVote(vote);
-    voteResponse.setStudentCourse(studentCourseRepository.findByStudent(member));
-    voteResponse.setVoteOption(voteOption);
-
-    voteResponseRepository.save(voteResponse);
   }
 
   public List<GetAllVoteDTO> getAllVote() {
