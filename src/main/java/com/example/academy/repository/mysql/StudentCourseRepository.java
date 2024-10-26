@@ -10,12 +10,14 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface StudentCourseRepository extends JpaRepository<StudentCourse, Long> {
 
-    List<StudentCourse> findByStudent(Member student);
+  StudentCourse findByStudent(Member student);
 
-    Optional<StudentCourse> findById(Long id);
+  Optional<StudentCourse> findById(Long id);
 
-    Optional<StudentCourse> findByStudentIdAndCourseId(Long id, Long id1);
+  Optional<StudentCourse> findByStudentIdAndCourseId(Long id, Long id1);
 
-    StudentCourse findByStudentId(Long id);
+  StudentCourse findByStudentId(Long id);
+
+  List<StudentCourse> findByCourseId(Long id);
 
 }

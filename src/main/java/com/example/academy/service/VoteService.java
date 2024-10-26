@@ -2,20 +2,26 @@ package com.example.academy.service;
 
 import com.example.academy.domain.Course;
 import com.example.academy.domain.Member;
+import com.example.academy.domain.StudentCourse;
 import com.example.academy.domain.Vote;
 import com.example.academy.domain.VoteOption;
+import com.example.academy.domain.VoteResponse;
 import com.example.academy.dto.member.CustomUserDetails;
 import com.example.academy.dto.vote.AddVoteDTO;
 import com.example.academy.dto.vote.DoVoteDTO;
 import com.example.academy.dto.vote.GetAllVoteDTO;
 import com.example.academy.dto.vote.GetVoteDTO;
+import com.example.academy.dto.vote.GetVoteInfoDTO;
+import com.example.academy.dto.vote.GetVoteInfoDTO.VoteOptionInfo;
 import com.example.academy.enums.MemberRole;
 import com.example.academy.exception.common.NotFoundException;
 import com.example.academy.exception.post.PostBadRequestException;
 import com.example.academy.repository.mysql.CourseRepository;
 import com.example.academy.repository.mysql.MemberRepository;
+import com.example.academy.repository.mysql.StudentCourseRepository;
 import com.example.academy.repository.mysql.VoteOptionRepository;
 import com.example.academy.repository.mysql.VoteRepository;
+import com.example.academy.repository.mysql.VoteResponseRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,18 +35,23 @@ public class VoteService {
   private final CourseRepository courseRepository;
   private final MemberRepository memberRepository;
   private final VoteOptionRepository voteOptionRepository;
+  private final VoteResponseRepository voteResponseRepository;
+  private final StudentCourseRepository studentCourseRepository;
 
   // 로그인된 유저 정보에 접근할 수 있는 서비스
   private final AuthService authService;
 
   public VoteService(VoteRepository voteRepository, CourseRepository courseRepository,
       AuthService authService, MemberRepository memberRepository,
-      VoteOptionRepository voteOptionRepository) {
+      VoteOptionRepository voteOptionRepository, StudentCourseRepository studentCourseRepository,
+      VoteResponseRepository voteResponseRepository) {
     this.voteRepository = voteRepository;
     this.courseRepository = courseRepository;
     this.authService = authService;
     this.memberRepository = memberRepository;
     this.voteOptionRepository = voteOptionRepository;
+    this.studentCourseRepository = studentCourseRepository;
+    this.voteResponseRepository = voteResponseRepository;
   }
 
   public void addVote(AddVoteDTO addVoteDTO) {
@@ -87,8 +98,91 @@ public class VoteService {
     voteOptionRepository.saveAll(voteOptions);
   }
 
-  public void doVote(DoVoteDTO doVoteDTO) {
+  public GetVoteInfoDTO getVoteInfo(Long id) {
+    // 투표 정보 조회
+    Vote vote = voteRepository.findById(id)
+        .orElseThrow(NotFoundException::new);
 
+    // 투표 정보 상세조회용 DTO 생성
+    GetVoteInfoDTO getVoteInfoDTO = new GetVoteInfoDTO();
+
+    // 투표 정보 상세조회 설정 위한 데이터 조회
+    List<VoteOption> voteOptions = voteOptionRepository.findByVote(vote);
+    List<StudentCourse> studentCourses = studentCourseRepository.findByCourseId(
+        vote.getCourse().getId());
+    List<VoteOptionInfo> voteOptionInfos = getVoteInfoDTO.getVoteOptionInfoList();
+
+    // 기존 데이터로부터 상세 조회 기본 데이터 설정
+    getVoteInfoDTO.setVoteTitle(vote.getTitle());
+    getVoteInfoDTO.setDescription(vote.getDescription());
+    getVoteInfoDTO.setEndDate(vote.getEndDate());
+    getVoteInfoDTO.setIsExpired(vote.getIsExpired());
+
+    // 기존 데이터를 가공하여 진행률, 투표 인원 계산
+    getVoteInfoDTO.setProgressRate(voteOptions.size() / studentCourses.size() * 100 + "%");
+    getVoteInfoDTO.setCurrentParticipants(voteOptions.size() + "/" + studentCourses.size());
+
+    // 투표 옵션별 투표 결과 조회
+    for (int i = 0; i < voteOptions.size(); i++) {
+      List<VoteResponse> voteResponses = voteResponseRepository.findByVoteOptionId(
+          voteOptions.get(i).getId());
+      voteOptionInfos.get(i).setOptionText(voteOptions.get(i).getOptionText());
+      voteOptionInfos.get(i)
+          .setOccupancyRate(voteResponses.size() / studentCourses.size() * 100 + "%");
+      voteOptionInfos.get(i).setVotes(String.valueOf(voteResponses.size()));
+    }
+
+    // 투표 결과 순위 설정
+    voteOptionInfos.sort((o1, o2) -> Integer.compare(Integer.parseInt(o2.getVotes()),
+        Integer.parseInt(o1.getVotes())));
+
+    for (int i = 0; i < voteOptionInfos.size(); i++) {
+      if (i > 0 && voteOptionInfos.get(i).getVotes()
+          .equals(voteOptionInfos.get(i - 1).getVotes())) {
+        voteOptionInfos.get(i).setRank(voteOptionInfos.get(i - 1).getRank());
+      } else {
+        voteOptionInfos.get(i).setRank(i + 1);
+      }
+    }
+
+    // 투표 결과 설정
+    getVoteInfoDTO.setResult(voteOptionInfos.get(0).getOptionText());
+
+    return getVoteInfoDTO;
+  }
+
+  public void doVote(DoVoteDTO doVoteDTO) {
+    CustomUserDetails user = authService.getAuthenticatedUser();
+
+    Member member = memberRepository.findById(user.getUserId())
+        .orElseThrow(PostBadRequestException::new);
+
+    Vote vote = voteRepository.findById(doVoteDTO.getVoteId())
+        .orElseThrow(NotFoundException::new);
+
+    if (vote.getIsExpired()) {
+      throw new PostBadRequestException("만료된 투표입니다.");
+    }
+
+    // 투표 중복 방지
+    List<VoteResponse> voteResponses = voteResponseRepository.findByVote(vote);
+    for (VoteResponse voteResponse : voteResponses) {
+      if (voteResponse.getStudentCourse().getStudent().getId().equals(member.getId())) {
+        throw new PostBadRequestException("이미 투표한 학생입니다.");
+      }
+    }
+
+    // 투표 옵션 확인
+    VoteOption voteOption = voteOptionRepository.findById(doVoteDTO.getVoteOptionId())
+        .orElseThrow(NotFoundException::new);
+
+    // 투표 응답 객체 생성
+    VoteResponse voteResponse = new VoteResponse();
+    voteResponse.setVote(vote);
+    voteResponse.setStudentCourse(studentCourseRepository.findByStudent(member));
+    voteResponse.setVoteOption(voteOption);
+
+    voteResponseRepository.save(voteResponse);
   }
 
   public List<GetAllVoteDTO> getAllVote() {
