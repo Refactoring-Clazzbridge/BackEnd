@@ -1,8 +1,11 @@
 package com.example.academy.controller;
 
 
-import com.example.academy.domain.mysql.Member;
+import com.example.academy.domain.Member;
+import com.example.academy.dto.auth.LoginRequestDTO;
+import com.example.academy.dto.auth.LoginResponseDTO;
 import com.example.academy.dto.member.MemberProfileUpdateDTO;
+import com.example.academy.service.LoginService;
 import com.example.academy.service.UserProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.HashMap;
@@ -26,6 +29,8 @@ public class UserProfileController {
 
   @Autowired
   private UserProfileService userProfileService;
+  @Autowired
+  private LoginService loginService;
 
   @Autowired
   private BCryptPasswordEncoder passwordEncoder;
@@ -70,5 +75,12 @@ public class UserProfileController {
       // 예외 발생 시, 에러 메시지와 함께 400 Bad Request 응답 반환
       return ResponseEntity.badRequest().body("회원 정보 업데이트 실패: " + e.getMessage());
     }
+  }
+
+  @PostMapping("update")
+  @Operation(summary = "사용자 로그인")
+  public ResponseEntity<LoginResponseDTO> update(@RequestBody LoginRequestDTO loginRequestDTO) {
+
+    return loginService.updateUserInfo(loginRequestDTO.getMemberId(), loginRequestDTO.getPassword());
   }
 }

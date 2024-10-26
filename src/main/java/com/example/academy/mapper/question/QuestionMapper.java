@@ -1,7 +1,7 @@
 package com.example.academy.mapper.question;
 
-import com.example.academy.domain.mysql.Question;
-import com.example.academy.domain.mysql.StudentCourse;
+import com.example.academy.domain.Question;
+import com.example.academy.domain.StudentCourse;
 import com.example.academy.dto.question.QuestionCreateDTO;
 import com.example.academy.dto.question.QuestionDetailReadDTO;
 import com.example.academy.dto.question.QuestionReadDTO;

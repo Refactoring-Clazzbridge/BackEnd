@@ -1,6 +1,6 @@
 package com.example.academy.service;
 
-import com.example.academy.domain.mysql.BoardType;
+import com.example.academy.domain.BoardType;
 import com.example.academy.dto.boardType.BoardTypeDTO;
 import com.example.academy.dto.boardType.BoardUpdateTypeDTO;
 import com.example.academy.exception.common.NotFoundException;

@@ -1,6 +1,5 @@
 package com.example.academy.dto.auth;
 
-import com.example.academy.domain.mysql.MemberType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,6 +13,5 @@ public class AuthResponseDTO {
     private String memberType; // 사용자 유형
     private String gitUrl; // Git URL
     private String profileImageUrl; // 프로필 이미지 URL
-
 
 }

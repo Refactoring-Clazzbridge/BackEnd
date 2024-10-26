@@ -1,5 +1,6 @@
-package com.example.academy.domain.mysql;
+package com.example.academy.domain;
 
+import java.time.LocalDateTime;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -7,36 +8,45 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "vote_response")
-public class VoteResponse {
+@Table(name = "schedule")
+public class Schedule {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", nullable = false)
   private Long id;
 
-  @NotNull
+
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "vote_id", nullable = false)
-  private Vote vote;
+  @JoinColumn(name = "course_id", nullable = false)
+  private Course course;
+
+  @Size(max = 100)
+  @NotNull
+  @Column(name = "event_title", nullable = false, length = 100)
+  private String eventTitle;
 
   @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "student_course_id", nullable = false)
-  private StudentCourse studentCourse;
+  @Column(name = "start_date", nullable = false)
+  private LocalDateTime startDate;
 
   @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "vote_option_id", nullable = false)
-  private VoteOption voteOption;
+  @Column(name = "end_date", nullable = false)
+  private LocalDateTime endDate;
+
+  @Lob
+  @Column(name = "description")
+  private String description;
 
 }

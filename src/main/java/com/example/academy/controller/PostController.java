@@ -47,6 +47,22 @@ public class PostController {
         return ResponseEntity.ok().body(postDTOs);
     }
 
+    @Operation(summary = "로그인된 유저의 강의 자유게시글 리스트 반환", security = {
+        @SecurityRequirement(name = "bearerAuth")})
+    @GetMapping("/users/me/courses/freePosts")
+    public ResponseEntity<List<PostResponseDTO>> getUserCourseFreePosts() {
+        List<PostResponseDTO> postDTOs = postService.getUserCourseFreePosts();
+        return ResponseEntity.ok().body(postDTOs);
+    }
+
+    @Operation(summary = "로그인된 유저의 강의 공지사항 리스트 반환", security = {
+        @SecurityRequirement(name = "bearerAuth")})
+    @GetMapping("/users/me/courses/notification")
+    public ResponseEntity<List<PostResponseDTO>> getUserCourseNotifications() {
+        List<PostResponseDTO> postDTOs = postService.getUserCourseNotifications();
+        return ResponseEntity.ok().body(postDTOs);
+    }
+
     @Operation(summary = "강의별 전체 게시글 리스트 반환", security = {
         @SecurityRequirement(name = "bearerAuth")})
     @GetMapping("/{courseId}/all")

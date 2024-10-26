@@ -1,4 +1,4 @@
-package com.example.academy.domain.mysql;
+package com.example.academy.domain;
 
 import java.time.LocalDate;
 import javax.persistence.Column;
@@ -22,16 +22,16 @@ import lombok.Setter;
 @Table(name = "course")
 public class Course {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "id", nullable = false)
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Long id;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "instructor_id")
-  private Member instructor;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "instructor_id")
+    private Member instructor;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "classroom_id")
   private Classroom classroom;
 

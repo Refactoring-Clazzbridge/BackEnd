@@ -1,4 +1,4 @@
-package com.example.academy.domain.mysql;
+package com.example.academy.domain;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,33 +17,22 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "seat")
-public class Seat {
+@Table(name = "vote_option")
+public class VoteOption {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", nullable = false)
   private Long id;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "course_id")
-  private Course course;
-
-  @Size(max = 10)
   @NotNull
-  @Column(name = "seat_number", nullable = false, length = 10)
-  private String seatNumber;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "vote_id", nullable = false)
+  private Vote vote;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "member_id")
-  private Member member;
-
+  @Size(max = 40)
   @NotNull
-  @Column(name = "is_exist", nullable = false)
-  private Boolean isExist = false;
-
-  @NotNull
-  @Column(name = "is_online", nullable = false)
-  private Boolean isOnline = false;
+  @Column(name = "option_text", nullable = false, length = 40)
+  private String optionText;
 
 }

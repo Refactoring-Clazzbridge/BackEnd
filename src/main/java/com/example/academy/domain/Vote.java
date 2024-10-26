@@ -1,6 +1,6 @@
-package com.example.academy.domain.mysql;
+package com.example.academy.domain;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -19,13 +19,13 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "assignment")
-public class Assignment {
+@Table(name = "vote")
+public class Vote {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "id", nullable = false)
-  private Long id;
+  private Integer id;
 
   @NotNull
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -37,13 +37,19 @@ public class Assignment {
   @Column(name = "title", nullable = false, length = 100)
   private String title;
 
-  @NotNull
   @Lob
-  @Column(name = "description", nullable = false)
+  @Column(name = "description")
   private String description;
 
   @NotNull
-  @Column(name = "due_date", nullable = false)
-  private LocalDate dueDate;
+  @Column(name = "start_date", nullable = false)
+  private Instant startDate;
+
+  @NotNull
+  @Column(name = "end_date", nullable = false)
+  private Instant endDate;
+
+  @Column(name = "is_expired")
+  private Boolean isExpired;
 
 }

@@ -1,4 +1,4 @@
-package com.example.academy.domain.mysql;
+package com.example.academy.domain;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

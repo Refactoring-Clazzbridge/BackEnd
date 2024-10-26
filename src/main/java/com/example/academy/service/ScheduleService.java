@@ -1,7 +1,7 @@
 package com.example.academy.service;
 
-import com.example.academy.domain.mysql.Course;
-import com.example.academy.domain.mysql.Schedule;
+import com.example.academy.domain.Course;
+import com.example.academy.domain.Schedule;
 import com.example.academy.dto.schedule.ScheduleAddDTO;
 import com.example.academy.dto.schedule.ScheduleListDTO;
 import com.example.academy.repository.mysql.CourseRepository;
@@ -31,11 +31,14 @@ public class ScheduleService {
     // Schedule 리스트를 ScheduleAddDTO 리스트로 변환
     return schedules.stream().map(schedule -> {
       // 강의실 정보 가져오기
-      Long courseId = schedule.getCourse().getId();
-      Optional<Course> courseOptional = courseRepository.findById(courseId);
+      Course course = schedule.getCourse();
+      Long courseId = (course != null) ? course.getId() : null; // course가 null일 때 null 처리
 
-      String courseName =
-          courseOptional.isPresent() ? courseOptional.get().getTitle() : "Unknown";
+      // courseId가 null인 경우 "Unknown" 처리
+      String courseName = (courseId != null) ? courseRepository.findById(courseId)
+          .map(Course::getTitle)
+          .orElse("전체 일정")
+          : "전체 일정";
 
       // ScheduleAddDTO로 변환
       ScheduleListDTO scheduleListDTO = new ScheduleListDTO();
@@ -49,6 +52,7 @@ public class ScheduleService {
       return scheduleListDTO;
     }).collect(Collectors.toList());
   }
+
 
 
   public Optional<ScheduleListDTO> getScheduleById(Long id) {
@@ -85,15 +89,24 @@ public class ScheduleService {
   public void addSchedule(ScheduleAddDTO schedule) {
 
     String courseTitle = schedule.getCourseTitle();
-
-    // courseName 찾기
+    Schedule data = new Schedule();
     Optional<Course> optionalCourse = courseRepository.findByTitle(courseTitle);
+    // courseName 찾기
     if (optionalCourse.isEmpty()) {
-      // courseName를 찾지 못하면 null을 반환하거나 적절한 값을 처리하도록 설정
-      throw new IllegalArgumentException("CourseName not found: " + courseTitle);
+      if (courseTitle.equals("전체 일정")) {
+        // 전체 일정의 경우 새로운 ID를 설정
+        System.out.println(scheduleRepository.findLastId());
+        data.setId(scheduleRepository.findLastId() + 1000L);
+      } else {
+        // courseName를 찾지 못하면 예외 발생
+        throw new IllegalArgumentException("CourseName not found: " + courseTitle);
+      }
+    } else {
+      // Course가 존재할 경우에만 CourseId 설정
+      Course courseId = optionalCourse.get(); // Optional 값 추출
+      data.setCourse(courseId);
     }
 
-    Course courseId = courseRepository.findByTitle(courseTitle).orElseThrow();
     String eventTitle = schedule.getEventTitle(); // 일정 제목
     LocalDateTime startDate = schedule.getStartDate(); // 일정 시작 날짜
     LocalDateTime endDate = schedule.getEndDate(); // 일정 종료 날짜
@@ -102,10 +115,6 @@ public class ScheduleService {
       throw new IllegalArgumentException("종료 날짜는 시작 날짜보다 이후여야 합니다.");
     }
 
-
-    Schedule data = new Schedule();
-
-    data.setCourse(courseId);
     data.setEventTitle(eventTitle);
     data.setStartDate(startDate);
     data.setEndDate(endDate);
@@ -116,14 +125,17 @@ public class ScheduleService {
 
   public void updateSchedule(ScheduleListDTO schedule) {
     String courseTitle = schedule.getCourseTitle();
-
+    Course course = null;
     // classroomRepository에서 courseName 강의실 조회
     Optional<Course> courseOptional = courseRepository.findByTitle(courseTitle);
-    if (!courseOptional.isPresent()) {
+    if (!courseOptional.isPresent() && !courseTitle.equals("전체 일정")) {
       throw new RuntimeException("해당 이름의 강의실을 찾을 수 없습니다.");
+    } else if (courseTitle.equals("전체 일정")) {
+
+    } else {
+      course = courseOptional.get(); // 강의 ID 추출
     }
 
-    Course course = courseOptional.get(); // 강의 ID 추출
     String eventTitle = schedule.getEventTitle(); // 일정 제목
     LocalDateTime startDate = schedule.getStartDate(); // 일정 시작 날짜
     LocalDateTime endDate = schedule.getEndDate(); // 일정 종료 날짜

@@ -3,7 +3,6 @@ package com.example.academy.controller;
 import com.example.academy.service.StudentCourseService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,15 +18,11 @@ public class studentCourseController {
 
 
     @GetMapping("")
-    public ResponseEntity<Long> getCourseId() {
-        Long courseId = studentCourseService.getCoureseId();
+    public ResponseEntity<Long> getCoureseId() {
+        Long courseId = studentCourseService.getCourseId();
 
         return ResponseEntity.ok().body(courseId);
     }
-
-
-
-
 
 
 }

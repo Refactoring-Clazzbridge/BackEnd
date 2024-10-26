@@ -1,4 +1,4 @@
-package com.example.academy.domain.mysql;
+package com.example.academy.domain;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,15 +10,14 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "vote_option")
-public class VoteOption {
+@Table(name = "vote_response")
+public class VoteResponse {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,9 +29,14 @@ public class VoteOption {
   @JoinColumn(name = "vote_id", nullable = false)
   private Vote vote;
 
-  @Size(max = 40)
   @NotNull
-  @Column(name = "option_text", nullable = false, length = 40)
-  private String optionText;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "student_course_id", nullable = false)
+  private StudentCourse studentCourse;
+
+  @NotNull
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "vote_option_id", nullable = false)
+  private VoteOption voteOption;
 
 }

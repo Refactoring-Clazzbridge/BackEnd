@@ -1,6 +1,6 @@
 package com.example.academy.mapper.member;
 
-import com.example.academy.domain.mysql.Member;
+import com.example.academy.domain.Member;
 import com.example.academy.dto.auth.AuthResponseDTO;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +12,7 @@ public class MemberResponseMapper {
             .id(member.getId())
             .email(member.getEmail())
             .name(member.getName())
-            .memberType(member.getMemberType().toString())
+            .memberType(member.getMemberType().getType())
             .gitUrl(member.getGitUrl())
             .profileImageUrl(member.getAvatarImage().getAvatarImageUrl())
             .build();

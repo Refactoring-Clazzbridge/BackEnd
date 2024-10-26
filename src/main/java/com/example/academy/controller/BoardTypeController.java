@@ -1,7 +1,7 @@
 package com.example.academy.controller;
 
 
-import com.example.academy.domain.mysql.BoardType;
+import com.example.academy.domain.BoardType;
 import com.example.academy.dto.boardType.BoardTypeDTO;
 import com.example.academy.dto.boardType.BoardUpdateTypeDTO;
 import com.example.academy.service.BoardTypeService;

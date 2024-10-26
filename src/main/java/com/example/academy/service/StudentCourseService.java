@@ -1,10 +1,6 @@
 package com.example.academy.service;
 
-import com.example.academy.domain.mysql.Course;
-import com.example.academy.domain.mysql.StudentCourse;
 import com.example.academy.dto.member.CustomUserDetails;
-import com.example.academy.enums.MemberRole;
-import com.example.academy.exception.common.NotFoundException;
 import com.example.academy.repository.mysql.CourseRepository;
 import com.example.academy.repository.mysql.StudentCourseRepository;
 import org.springframework.stereotype.Service;
@@ -27,14 +23,11 @@ public class StudentCourseService {
     }
 
 
-    public Long getCoureseId() {
+    public Long getCourseId() {
         CustomUserDetails user = authService.getAuthenticatedUser();
 
-        Long courseId = studentCourseRepository.findByStudentId(user.getUserId()).getCourse()
+        return studentCourseRepository.findByStudentId(user.getUserId()).getCourse()
             .getId();
-
-        System.out.println(courseId + "====================================================");
-        return courseId;
     }
 
 }

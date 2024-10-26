@@ -18,5 +18,7 @@ public class PostCreateDTO {
 
     @Schema(description = "게시글 타입 ID 번호", example = "2")
     private Long boardTypeId;
-    
+
+    @Schema(description = "강의 ID 번호", example = "2")
+    private Long courseId;
 }

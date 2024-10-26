@@ -13,9 +13,8 @@ public class LoginResponseDTO {
     private Cookie refreshTokenCookie;
     private AuthResponseDTO authResponseDTO;
 
-    public LoginResponseDTO(String accessToken, Cookie refreshTokenCookie) {
-        this.accessToken = accessToken;
-        this.refreshTokenCookie = refreshTokenCookie;
+    public LoginResponseDTO(AuthResponseDTO authResponseDTO) {
+        this.authResponseDTO = authResponseDTO;
     }
 
     public LoginResponseDTO(String accessToken, Cookie refreshTokenCookie,
@@ -24,6 +23,4 @@ public class LoginResponseDTO {
         this.refreshTokenCookie = refreshTokenCookie;
         this.authResponseDTO = authResponseDTO;
     }
-
-    // Getter/Setter 생략
 }

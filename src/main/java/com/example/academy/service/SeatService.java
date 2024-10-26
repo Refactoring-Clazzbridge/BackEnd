@@ -1,9 +1,8 @@
 package com.example.academy.service;
 
-import com.example.academy.domain.mysql.Course;
-import com.example.academy.domain.mysql.Member;
-import com.example.academy.domain.mysql.MemberType;
-import com.example.academy.domain.mysql.Seat;
+import com.example.academy.domain.Course;
+import com.example.academy.domain.Member;
+import com.example.academy.domain.Seat;
 import com.example.academy.dto.member.CustomUserDetails;
 import com.example.academy.dto.member.MemberDTO;
 import com.example.academy.dto.seat.SeatUpdateDTO;

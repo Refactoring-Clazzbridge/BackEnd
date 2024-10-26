@@ -1,7 +1,7 @@
 package com.example.academy.service;
 
 
-import com.example.academy.domain.mysql.Member;
+import com.example.academy.domain.Member;
 import com.example.academy.dto.member.MemberProfileUpdateDTO;
 import com.example.academy.repository.mysql.MemberRepository;
 import java.util.Optional;

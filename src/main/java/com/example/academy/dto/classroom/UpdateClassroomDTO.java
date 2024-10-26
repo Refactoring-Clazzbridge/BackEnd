@@ -10,5 +10,4 @@ public class UpdateClassroomDTO {
 
   private String name;
 
-  private Boolean isOccupied;
 }
