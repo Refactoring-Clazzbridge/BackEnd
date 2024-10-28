@@ -1,13 +1,13 @@
-# Step 1: Build the application using a Gradle image with JDK 17
-FROM gradle:8.8-jdk17 AS builder
-WORKDIR /app
-COPY . .
-RUN gradle build --no-daemon
+# FROM openjdk:17-oracle
+# WORKDIR /app
+# ARG JAR_FILE=build/libs/Member-0.0.1-SNAPSHOT.jar
+# COPY ${JAR_FILE} app.jar
+# COPY src/main/resources/application.yml /app
+# ENTRYPOINT ["java","-jar","app.jar"]
 
-# Step 2: Create a new container with JRE and copy the built application
-FROM openjdk:17-slim
-WORKDIR /app
-COPY --from=builder /app/build/libs/com.example.demo-1.0.0.jar /app/com.example.demo-1.0.0.jar
-
-# Step 3: Set the default command to run the application
-CMD ["java", "-jar", "/app/com.example.demo-1.0.0.jar"]
+FROM openjdk:17-oracle
+ENV HOME_DIR /BackEnd
+RUN mkdir -p $HOME_DIR
+WORKDIR $HOME_DIR
+COPY build/libs/demo-0.0.1-SNAPSHOT.jar /BackEnd/demo.jar
+CMD ["java","-jar","demo.jar"]
