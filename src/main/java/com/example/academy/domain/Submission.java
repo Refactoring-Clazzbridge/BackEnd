@@ -37,7 +37,7 @@ public class Submission {
 
     @NotNull
     @Lob
-    @Column(name = "content", nullable = false)
+    @Column(name = "content", columnDefinition = "MEDIUMTEXT", nullable = false)
     private String content;
 
     @Size(max = 255)

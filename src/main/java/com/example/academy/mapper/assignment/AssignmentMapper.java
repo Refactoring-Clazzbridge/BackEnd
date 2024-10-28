@@ -26,7 +26,7 @@ public class AssignmentMapper {
     }
 
     public static List<AssignmentResponseDTO> toDtoList(List<Assignment> assignments) {
-      
+
         return assignments.stream()
             .map(assignment -> toDto(assignment))
             .collect(Collectors.toList());

@@ -2,6 +2,7 @@ package com.example.academy.repository.mysql;
 
 import com.example.academy.domain.Member;
 import com.example.academy.domain.StudentCourse;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,4 +19,5 @@ public interface StudentCourseRepository extends JpaRepository<StudentCourse, Lo
 
     StudentCourse findByStudentId(Long id);
 
+    List<StudentCourse> findByCourse_Id(Long courseId);
 }

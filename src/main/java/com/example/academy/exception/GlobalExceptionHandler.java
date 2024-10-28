@@ -1,5 +1,6 @@
 package com.example.academy.exception;
 
+import com.example.academy.exception.common.FileStorageException;
 import com.example.academy.exception.common.NotFoundException;
 import com.example.academy.exception.common.UnauthorizedException;
 import com.example.academy.exception.post.PostBadRequestException;
@@ -31,6 +32,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleAccessDeniedException(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body("접근이 거부되었습니다.");
+    }
+
+    @ExceptionHandler(FileStorageException.class)
+    public ResponseEntity<String> handleFileStorageException(FileStorageException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
     // =============== Post ===============

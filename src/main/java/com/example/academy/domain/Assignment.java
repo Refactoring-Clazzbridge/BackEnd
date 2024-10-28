@@ -39,10 +39,9 @@ public class Assignment {
     private String title;
 
     @NotNull
-    @Lob
-    @Column(name = "description", nullable = false)
+    @Column(name = "description", columnDefinition = "MEDIUMTEXT", nullable = false)
     private String description;
-
+    
     @NotNull
     @Column(name = "due_date", nullable = false)
     private LocalDate dueDate;

@@ -7,6 +7,8 @@ import com.example.academy.dto.course.CourseAddDTO;
 import com.example.academy.dto.course.CourseTitleDTO;
 import com.example.academy.dto.course.CourseUpdateDTO;
 import com.example.academy.dto.course.GetCourseDTO;
+import com.example.academy.dto.member.MemberDTO;
+import com.example.academy.dto.member.StudentDTO;
 import com.example.academy.dto.course.SelectCourseDTO;
 import com.example.academy.dto.member.CustomUserDetails;
 import com.example.academy.exception.common.NotFoundException;
@@ -25,58 +27,66 @@ public class CourseService {
 
   private final CourseRepository courseRepository;
   private final ClassroomRepository classroomRepository;
-  private final StudentCourseRepository studentCourseRepository;
-  private final AuthService authService;
+    private final StudentCourseRepository studentCourseRepository;
+    private final AuthService authService;
 
-  public CourseService(CourseRepository courseRepository, ClassroomRepository classroomRepository, StudentCourseRepository studentCourseRepository, AuthService authService) {
-    this.courseRepository = courseRepository;
-    this.classroomRepository = classroomRepository;
-    this.studentCourseRepository = studentCourseRepository;
-    this.authService = authService;
-  }
+    public CourseService(CourseRepository courseRepository, ClassroomRepository classroomRepository, StudentCourseRepository studentCourseRepository, AuthService authService) {
+        this.courseRepository = courseRepository;
+        this.classroomRepository = classroomRepository;
+        this.studentCourseRepository = studentCourseRepository;
+        this.authService = authService;
+    }
 
   public List<CourseTitleDTO> getCourseTitle() {
     return courseRepository.findAll().stream()
-        .map(course -> new CourseTitleDTO(course.getTitle()))
-        .collect(Collectors.toList());
+        .map(course -> new CourseTitleDTO(course.getTitle())) // ClassroomNameDTO로 변환
+        .collect(Collectors.toList()); // List로 수집
   }
 
-  public List<GetCourseDTO> getAllCourse() {
-    List<Course> courses = courseRepository.findAll();
-    return courses.stream()
-        .map(course -> new GetCourseDTO(
-            course.getId(),
-            course.getInstructor() != null ? course.getInstructor().getName() : "",
-            course.getClassroom() != null ? course.getClassroom().getName() : "No Classroom",
-            course.getTitle(),
-            course.getDescription(),
-            course.getStartDate(),
-            course.getEndDate(),
-            course.getLayoutImageUrl()))
-        .collect(Collectors.toList());
-  }
+    public List<GetCourseDTO> getAllCourse() {
+        List<Course> courses = courseRepository.findAll();  // Lazy로 인해 N+1 문제가 발생할 수 있음. 이를 해결하려면 JOIN FETCH 사용 고려.
 
-  public List<GetCourseDTO> getCourse(Long id) throws Exception {
-    Optional<Course> courses = courseRepository.findById(id);
-    if (courses.isEmpty()) {
-      throw new Exception("조회된 강의가 없습니다.");
+        return courses.stream()
+            .map(course -> new GetCourseDTO(
+                course.getId(),
+                course.getInstructor() != null ? course.getInstructor().getName() : "",
+                // null 체크
+                course.getClassroom() != null ? course.getClassroom().getName() : "No Classroom",
+                // null 체크
+                course.getTitle(),
+                course.getDescription(),
+                course.getStartDate(),
+                course.getEndDate(),
+                course.getLayoutImageUrl()))
+            .collect(Collectors.toList());
     }
-    return courses.stream()
-        .map(course -> new GetCourseDTO(
-            course.getId(),
-            course.getInstructor() != null ? course.getInstructor().getName() : "No Instructor",
-            course.getClassroom() != null ? course.getClassroom().getName() : "No Classroom",
-            course.getTitle(),
-            course.getDescription(),
-            course.getStartDate(),
-            course.getEndDate(),
-            course.getLayoutImageUrl()))
-        .collect(Collectors.toList());
-  }
 
-  public void deleteCourse(Long id) {
-    courseRepository.deleteById(id);
-  }
+    public List<GetCourseDTO> getCourse(Long id) throws Exception {
+        Optional<Course> courses = courseRepository.findById(
+            id);  // Lazy로 인해 N+1 문제가 발생할 수 있음. 이를 해결하려면 JOIN FETCH 사용 고려.
+
+        if (courses.isEmpty()) {
+            throw new Exception("조회된 강의가 없습니다.");
+        }
+        return courses.stream() // 1. courses 리스트에서 Stream(Data 순차 처리)을 생성
+            .map(course -> new GetCourseDTO( // 2. 각 course 객체를 GetCourseDTO로 변환하는 작업
+                course.getId(), // 3. course의 ID를 GetCourseDTO에 설정
+                course.getInstructor() != null ? course.getInstructor().getName() : "No Instructor",
+                // 4. 강사 정보가 있으면 이름을, 없으면 "No Instructor"를 설정
+                course.getClassroom() != null ? course.getClassroom().getName() : "No Classroom",
+                // 5. 교실 정보가 있으면 이름을, 없으면 "No Classroom"을 설정
+                course.getTitle(), // 6. 강의 제목을 GetCourseDTO에 설정
+                course.getDescription(), // 7. 강의 설명을 GetCourseDTO에 설정
+                course.getStartDate(), // 8. 시작 날짜를 GetCourseDTO에 설정
+                course.getEndDate(), // 9. 종료 날짜를 GetCourseDTO에 설정
+                course.getLayoutImageUrl())) // 10. 레이아웃 이미지 URL을 GetCourseDTO에 설정
+            .collect(Collectors.toList()); // 11. 변환된 결과들을 리스트로 수집하여 반환
+    }
+
+
+    public void deleteCourse(Long id) {
+        courseRepository.deleteById(id);
+    }
 
   public List<SelectCourseDTO> seatAllCourse() {
     List<Course> courses = courseRepository.findAll();
