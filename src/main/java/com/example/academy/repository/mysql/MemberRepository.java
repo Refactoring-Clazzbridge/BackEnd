@@ -29,5 +29,4 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
   @Query("SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END FROM Member m WHERE m.email = :email AND m.id <> :id")
   boolean existsByEmailAndIdNot(@Param("email") String email, @Param("id") Long id);
 
-
 }
