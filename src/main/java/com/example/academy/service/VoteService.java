@@ -108,7 +108,10 @@ public class VoteService {
     GetVoteInfoDTO getVoteInfoDTO = new GetVoteInfoDTO();
 
     // 투표 정보 상세조회 설정 위한 데이터 조회
+
+    // 응답 종류 출력
     List<VoteResponse> voteResponsesForVote = voteResponseRepository.findByVote(vote);
+
     List<VoteOption> voteOptions = voteOptionRepository.findByVote(vote);
     List<StudentCourse> studentCourses = studentCourseRepository.findByCourseId(
         vote.getCourse().getId());
@@ -128,16 +131,24 @@ public class VoteService {
     getVoteInfoDTO.setCurrentParticipants(
         voteResponsesForVote.size() + "/" + studentCourses.size());
 
+    int count = 0;
     // 투표 옵션별 투표 결과 조회
     for (int i = 0; i < voteOptions.size(); i++) {
+      count = 0;
+      for (VoteResponse voteResponse : voteResponsesForVote) {
+        if (voteOptions.get(i).getOptionText()
+            .equals(voteResponse.getVoteOption().getOptionText())) {
+          count++;
+        }
+      }
       voteOptionInfos.add(new VoteOptionInfo());
       List<VoteResponse> voteResponses = voteResponseRepository.findByVoteOptionId(
           voteOptions.get(i).getId());
       voteOptionInfos.get(i).setOptionText(voteOptions.get(i).getOptionText());
       voteOptionInfos.get(i)
           .setOccupancyRate(
-              Math.round(voteResponses.size() * 1.0 / voteResponsesForVote.size() * 100) + "%");
-      voteOptionInfos.get(i).setVotes(String.valueOf(voteResponses.size()));
+              Math.round(count * 1.0 / voteResponsesForVote.size() * 100) + "%");
+      voteOptionInfos.get(i).setVotes(String.valueOf(count));
     }
 
     // 투표 결과 순위 설정
@@ -152,10 +163,7 @@ public class VoteService {
         voteOptionInfos.get(i).setRank(i + 1);
       }
     }
-
     // 투표 결과 설정
-    getVoteInfoDTO.setResult(voteOptionInfos.get(0).getOptionText());
-
     return getVoteInfoDTO;
   }
 
@@ -166,6 +174,7 @@ public class VoteService {
 
       Member member = memberRepository.findById(user.getUserId())
           .orElseThrow(PostBadRequestException::new);
+      System.out.println("멤버" + member);
 
       Vote vote = voteRepository.findById(doVoteDTO.getVoteId())
           .orElseThrow(NotFoundException::new);
@@ -190,6 +199,7 @@ public class VoteService {
       VoteResponse voteResponse = new VoteResponse();
       voteResponse.setVote(vote);
       voteResponse.setStudentCourse(studentCourseRepository.findByStudent(member));
+      System.out.println("스튜던트 코스" + studentCourseRepository.findByStudent(member));
       voteResponse.setVoteOption(voteOption);
 
       voteResponseRepository.save(voteResponse);

@@ -70,7 +70,7 @@ public class VoteController {
 
   @PutMapping("/{id}/submit")
   @Operation(summary = "투표 선택", security = {@SecurityRequirement(name = "bearerAuth")})
-  public ResponseEntity<?> doVote(@RequestBody DoVoteDTO doVoteDTO) {
+  public ResponseEntity<?> doVote(@PathVariable Long id, @RequestBody DoVoteDTO doVoteDTO) {
     try {
       voteService.doVote(doVoteDTO);
       return ResponseEntity.ok("선택완료");
