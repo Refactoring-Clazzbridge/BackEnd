@@ -160,6 +160,7 @@ public class VoteService {
   }
 
   public void doVote(DoVoteDTO doVoteDTO) {
+    System.out.println("Received DoVoteDTO: " + doVoteDTO);
     try {
       CustomUserDetails user = authService.getAuthenticatedUser();
 
