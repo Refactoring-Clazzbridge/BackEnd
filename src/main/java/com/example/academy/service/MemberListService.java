@@ -111,10 +111,12 @@ public class MemberListService {
       GetMemberDTO dto = new GetMemberDTO(
           member.getId(),
           member.getMemberId(),
+          member.getPassword(),
           member.getName(),
           member.getEmail(),
           member.getPhone(),
           member.getMemberType().getType(),
+          member.getAvatarImage(),
           courseTitle
       );
 

@@ -6,13 +6,18 @@ import com.example.academy.service.AssignmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/assignments")
@@ -57,9 +62,19 @@ public class AssignmentController {
     @PostMapping("")
     public ResponseEntity<AssignmentResponseDTO> createAssignment(
         @RequestBody AssignmentRequestDTO assignmentRequestDTO) {
-        AssignmentResponseDTO assignment = assignmentService.save(assignmentRequestDTO);
+
+        AssignmentResponseDTO assignment = assignmentService.createAssignment(assignmentRequestDTO);
 
         return ResponseEntity.ok().body(assignment);
+    }
+
+    @Operation(summary = "과제 삭제", security = {@SecurityRequirement(name = "bearerAuth")})
+    @DeleteMapping("/{assignmentId}")
+    public HttpStatus deleteAssignment(@PathVariable(value = "assignmentId") Long assignmentId) {
+
+        assignmentService.deleteAssignment(assignmentId);
+
+        return HttpStatus.OK;
     }
 
 

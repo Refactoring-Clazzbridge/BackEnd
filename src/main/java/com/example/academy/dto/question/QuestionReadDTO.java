@@ -12,5 +12,6 @@ public class QuestionReadDTO {
   private String studentName;
   private String content;
   private boolean isRecommended;
+  private boolean isSolved;
   private Date createdAt;
 }
