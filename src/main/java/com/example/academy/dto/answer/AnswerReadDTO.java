@@ -1,4 +1,4 @@
-package com.example.academy.dto.question;
+package com.example.academy.dto.answer;
 
 import java.util.Date;
 import lombok.AllArgsConstructor;
@@ -6,12 +6,10 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class QuestionReadDTO {
+public class AnswerReadDTO {
 
   private Long id;
-  private String studentName;
   private String content;
-  private boolean isRecommended;
-  private boolean isSolved;
+  private String teacherName;
   private Date createdAt;
 }

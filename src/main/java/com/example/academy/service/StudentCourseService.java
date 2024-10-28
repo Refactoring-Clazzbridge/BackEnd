@@ -28,7 +28,6 @@ public class StudentCourseService {
     private final StudentCourseRepository studentCourseRepository;
     private final CourseRepository courseRepository;
     private final SubmissionRepository submissionRepository;
-
     private final AuthService authService;
 
     public StudentCourseService(StudentCourseRepository studentCourseRepository,

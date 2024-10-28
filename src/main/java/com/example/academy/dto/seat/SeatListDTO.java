@@ -4,23 +4,23 @@ import com.example.academy.dto.member.MemberDTO;
 import lombok.Getter;
 import lombok.Setter;
 
+
 @Getter
 @Setter
-public class SeatDTO {
+public class SeatListDTO {
 
   private Long id;
   private String seatNumber;
   private Boolean isExist = true;
   private Boolean isOnline = false;
-  private MemberDTO memberDTO;
+  private MemberDTO member;
 
-  public SeatDTO(Long id, String seatNumber, Boolean isExist, Boolean isOnline, MemberDTO memberDTO) {
+
+  public SeatListDTO(Long id, String seatNumber, Boolean isExist, Boolean isOnline, MemberDTO member) {
     this.id = id;
     this.seatNumber = seatNumber;
     this.isExist = isExist;
     this.isOnline = isOnline;
-    this.memberDTO = memberDTO;
+    this.member = member;
   }
 }
-
-

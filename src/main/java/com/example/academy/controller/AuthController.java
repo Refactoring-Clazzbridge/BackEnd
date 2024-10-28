@@ -41,4 +41,4 @@ public class AuthController {
           .body("Error generating new access token");
     }
   }
-}
+  }
