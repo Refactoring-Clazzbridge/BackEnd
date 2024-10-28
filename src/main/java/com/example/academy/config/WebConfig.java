@@ -11,7 +11,7 @@ public class WebConfig implements WebMvcConfigurer {
   public void addCorsMappings(CorsRegistry registry) {
     registry.addMapping("/**")
         .allowedOrigins("http://default-clazz-bridge-ser-99ad8-100126125-2a266ae4e49a.kr.lb.naverncp.com",
-            "default-websocket-servic-3b8f6-100169772-9abcce8b6147.kr.lb.naverncp.com") // 프론트엔드 URL
+            "http://default-websocket-servic-3b8f6-100169772-9abcce8b6147.kr.lb.naverncp.com:3001") // 프론트엔드 URL
         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
         .allowedHeaders("*") // Authorization 헤더 허용
         .allowCredentials(true);
