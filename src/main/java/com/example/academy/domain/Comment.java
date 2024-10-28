@@ -1,7 +1,6 @@
 package com.example.academy.domain;
 
 import com.example.academy.common.BaseTimeEntity;
-import java.time.Instant;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;

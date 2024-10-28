@@ -25,10 +25,9 @@ public class Seat {
   @Column(name = "id", nullable = false)
   private Long id;
 
-  @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "classroom_id", nullable = false)
-  private Course classroom;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "course_id")
+  private Course course;
 
   @Size(max = 10)
   @NotNull
