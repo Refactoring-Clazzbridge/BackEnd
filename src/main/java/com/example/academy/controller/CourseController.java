@@ -9,6 +9,7 @@ import com.example.academy.dto.member.StudentDTO;
 import com.example.academy.dto.course.SelectCourseDTO;
 import com.example.academy.service.CourseService;
 import com.example.academy.service.StudentCourseService;
+import com.example.academy.service.SubmissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
@@ -28,19 +29,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/course")
 public class CourseController {
 
-  @Autowired
-  private final CourseService courseService;
+    @Autowired
+    private final CourseService courseService;
+    private final StudentCourseService studentCourseService;
 
-  public CourseController(CourseService courseService) {
-    this.courseService = courseService;
-  }
+    public CourseController(CourseService courseService,
+        StudentCourseService studentCourseService) {
+        this.courseService = courseService;
+        this.studentCourseService = studentCourseService;
+    }
 
-  @Operation(summary = "강의명 전체 조회", security = {@SecurityRequirement(name = "bearerAuth")})
-  @GetMapping("/title")
-  public ResponseEntity<List<?>> getCourseTitle(){
-    List<CourseTitleDTO> title = courseService.getCourseTitle();
-    return ResponseEntity.ok(title);
-  }
+    @Operation(summary = "강의명 전체 조회", security = {@SecurityRequirement(name = "bearerAuth")})
+    @GetMapping("/title")
+    public ResponseEntity<List<?>> getCourseTitle() {
+        List<CourseTitleDTO> title = courseService.getCourseTitle();
+        return ResponseEntity.ok(title);
+    }
 
     @Operation(summary = "강의에 속한 수강생 리스트 조회", security = {
         @SecurityRequirement(name = "bearerAuth")})
@@ -80,43 +84,43 @@ public class CourseController {
         }
     }
 
-  @PutMapping
-  @Operation(summary = "강의 변경", security = {@SecurityRequirement(name = "bearerAuth")})
-  public ResponseEntity<?> updateCourse(@RequestBody CourseUpdateDTO courseUpdateDTO) {
-    try {
-      courseService.updateCourse(courseUpdateDTO);
-      return ResponseEntity.ok().body("변경 성공");
-    } catch (Exception e) {
-      return ResponseEntity.badRequest().body(e.getMessage());
+    @PutMapping
+    @Operation(summary = "강의 변경", security = {@SecurityRequirement(name = "bearerAuth")})
+    public ResponseEntity<?> updateCourse(@RequestBody CourseUpdateDTO courseUpdateDTO) {
+        try {
+            courseService.updateCourse(courseUpdateDTO);
+            return ResponseEntity.ok().body("변경 성공");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
-  }
 
-  @DeleteMapping("{id}")
-  @Operation(summary = "강의 삭제", security = {@SecurityRequirement(name = "bearerAuth")})
-  public ResponseEntity<?> deleteCourse(@PathVariable Long id){
-    try {
-      courseService.deleteCourse(id);
-      return ResponseEntity.ok("삭제완료");
-    } catch (Exception e) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error 강의 삭제 실패");
+    @DeleteMapping("{id}")
+    @Operation(summary = "강의 삭제", security = {@SecurityRequirement(name = "bearerAuth")})
+    public ResponseEntity<?> deleteCourse(@PathVariable Long id) {
+        try {
+            courseService.deleteCourse(id);
+            return ResponseEntity.ok("삭제완료");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error 강의 삭제 실패");
+        }
+    } // 여기 괄호 추가됨
+
+    @Operation(summary = "강의실 강의 선택")
+    @GetMapping("/select")
+    public ResponseEntity<List<SelectCourseDTO>> SeatAllCourse() {
+        return ResponseEntity.ok(courseService.seatAllCourse());
     }
-  } // 여기 괄호 추가됨
 
-  @Operation(summary = "강의실 강의 선택")
-  @GetMapping("/select")
-  public ResponseEntity<List<SelectCourseDTO>> SeatAllCourse(){
-    return ResponseEntity.ok(courseService.seatAllCourse());
-  }
+    @Operation(summary = "강의 번호 반환")
+    @GetMapping("/teacher")
+    public ResponseEntity<Long> getTeacherByCourseId() {
+        return ResponseEntity.ok(courseService.getTeacherByCourseId());
+    }
 
-  @Operation(summary = "강의 번호 반환")
-  @GetMapping("/teacher")
-  public ResponseEntity<Long> getTeacherByCourseId(){
-    return ResponseEntity.ok(courseService.getTeacherByCourseId());
-  }
-
-  @Operation(summary = "학생의 강의 번호 반환")
-  @GetMapping("/student")
-  public ResponseEntity<Long> getStudentCourseId() {
-    return ResponseEntity.ok(courseService.getStudentCourseId());
-  }
+    @Operation(summary = "학생의 강의 번호 반환")
+    @GetMapping("/student")
+    public ResponseEntity<Long> getStudentCourseId() {
+        return ResponseEntity.ok(courseService.getStudentCourseId());
+    }
 }
