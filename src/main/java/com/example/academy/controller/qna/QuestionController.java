@@ -79,6 +79,13 @@ public class QuestionController {
     return ResponseEntity.ok(questions);
   }
 
+  @Operation(summary = "특정 강의의 질문 리스트 반환", security = {@SecurityRequirement(name = "bearerAuth")})
+  @GetMapping("/course/{courseId}")
+  public ResponseEntity<List<QuestionDetailReadDTO>> getQuestionsByCourseId(@PathVariable Long courseId) {
+    List<QuestionDetailReadDTO> questions = questionService.getQuestionsByCourseId(courseId);
+    return ResponseEntity.ok(questions);
+  }
+
   @Operation(summary = "ID로 질문 상세 조회", security = {@SecurityRequirement(name = "bearerAuth")})
   @GetMapping("/{id}")
   public ResponseEntity<QuestionDetailReadDTO> getQuestionDetailById(@PathVariable("id") Long id) {
@@ -87,7 +94,7 @@ public class QuestionController {
   }
 
   @Operation(summary = "질문 생성", security = {@SecurityRequirement(name = "bearerAuth")})
-  @PostMapping
+  @PostMapping()
   public ResponseEntity<QuestionReadDTO> createQuestion(
       @RequestBody QuestionCreateDTO createQuestionDTO) {
     QuestionReadDTO newQuestionReadDTO = questionService.createQuestion(createQuestionDTO);
@@ -103,7 +110,7 @@ public class QuestionController {
   }
 
   @Operation(summary = "질문 삭제", security = {@SecurityRequirement(name = "bearerAuth")})
-  @DeleteMapping("/qnas/questions")
+  @DeleteMapping()
   public ResponseEntity<?> deleteQuestion(@RequestBody List<Long> ids) {
     questionService.deleteQuestion(ids);
     return ResponseEntity.noContent().build();

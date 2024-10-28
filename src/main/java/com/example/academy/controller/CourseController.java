@@ -100,4 +100,10 @@ public class CourseController {
   public ResponseEntity<Long> getTeacherByCourseId(){
     return ResponseEntity.ok(courseService.getTeacherByCourseId());
   }
+
+  @Operation(summary = "학생의 강의 번호 반환")
+  @GetMapping("/student")
+  public ResponseEntity<Long> getStudentCourseId() {
+    return ResponseEntity.ok(courseService.getStudentCourseId());
+  }
 }

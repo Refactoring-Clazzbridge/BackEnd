@@ -2,6 +2,7 @@ package com.example.academy.service;
 
 import com.example.academy.domain.Classroom;
 import com.example.academy.domain.Course;
+import com.example.academy.domain.StudentCourse;
 import com.example.academy.dto.course.CourseAddDTO;
 import com.example.academy.dto.course.CourseTitleDTO;
 import com.example.academy.dto.course.CourseUpdateDTO;
@@ -12,6 +13,7 @@ import com.example.academy.exception.common.NotFoundException;
 import com.example.academy.enums.MemberRole;
 import com.example.academy.repository.mysql.ClassroomRepository;
 import com.example.academy.repository.mysql.CourseRepository;
+import com.example.academy.repository.mysql.StudentCourseRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -23,11 +25,13 @@ public class CourseService {
 
   private final CourseRepository courseRepository;
   private final ClassroomRepository classroomRepository;
+  private final StudentCourseRepository studentCourseRepository;
   private final AuthService authService;
 
-  public CourseService(CourseRepository courseRepository, ClassroomRepository classroomRepository, AuthService authService) {
+  public CourseService(CourseRepository courseRepository, ClassroomRepository classroomRepository, StudentCourseRepository studentCourseRepository, AuthService authService) {
     this.courseRepository = courseRepository;
     this.classroomRepository = classroomRepository;
+    this.studentCourseRepository = studentCourseRepository;
     this.authService = authService;
   }
 
@@ -150,6 +154,18 @@ public class CourseService {
       Course course = courseRepository.findByInstructorId(user.getUserId())
           .orElseThrow(() -> new NotFoundException("해당 강의가 존재하지 않습니다."));
       return course.getId();
+    }
+    return null;
+  }
+
+  public Long getStudentCourseId() {
+    CustomUserDetails user = authService.getAuthenticatedUser();
+    if (user.getUserType().equals(MemberRole.ROLE_STUDENT)) {
+      StudentCourse studentCourse = studentCourseRepository.findByStudentId(user.getUserId());
+      if (studentCourse == null) {
+        throw new NotFoundException("해당 수강 정보가 존재하지 않습니다.");
+      }
+      return studentCourse.getCourse().getId();
     }
     return null;
   }

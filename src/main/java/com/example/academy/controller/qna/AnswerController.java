@@ -31,6 +31,7 @@ public class AnswerController {
   public AnswerController(AnswerService answerService) {
     this.answerService = answerService;
   }
+
   @Operation(summary = "질문에 관한 답변 리스트 반환", security = {@SecurityRequirement(name = "bearerAuth")})
   @GetMapping("/question/{questionId}")
   public ResponseEntity<List<AnswerReadDTO>> getAnswersByQuestionId(@PathVariable Long questionId) {
@@ -39,7 +40,7 @@ public class AnswerController {
   }
 
   @Operation(summary = "답변 등록", security = {@SecurityRequirement(name = "bearerAuth")})
-  @PreAuthorize("hasRole('ROLE_TEACHER')") // 교사만 접근 가능하도록 설정
+  @PreAuthorize("hasAnyRole('ROLE_TEACHER', 'ROLE_ADMIN')") // 교사와 관리자 접근 가능
   @PostMapping
   public ResponseEntity<AnswerReadDTO> createAnswer(@RequestBody AnswerCreateDTO answerCreateDTO) {
     AnswerReadDTO answerReadDTO = answerService.createAnswer(answerCreateDTO);
@@ -47,7 +48,7 @@ public class AnswerController {
   }
 
   @Operation(summary = "답변 수정", security = {@SecurityRequirement(name = "bearerAuth")})
-  @PreAuthorize("hasRole('ROLE_TEACHER')") // 교사만 접근 가능하도록 설정
+  @PreAuthorize("hasAnyRole('ROLE_TEACHER', 'ROLE_ADMIN')") // 교사와 관리자 접근 가능
   @PutMapping
   public ResponseEntity<AnswerReadDTO> updateAnswer(@RequestBody AnswerUpdateDTO answerUpdateDTO) {
     AnswerReadDTO updatedAnswer = answerService.updateAnswer(answerUpdateDTO);
@@ -55,7 +56,7 @@ public class AnswerController {
   }
 
   @Operation(summary = "답변 삭제", security = {@SecurityRequirement(name = "bearerAuth")})
-  @PreAuthorize("hasRole('ROLE_TEACHER')") // 교사만 접근 가능하도록 설정
+  @PreAuthorize("hasAnyRole('ROLE_TEACHER', 'ROLE_ADMIN')") // 교사와 관리자 접근 가능
   @DeleteMapping("/{answerId}")
   public ResponseEntity<Void> deleteAnswer(@PathVariable Long answerId) {
     answerService.deleteAnswer(answerId);

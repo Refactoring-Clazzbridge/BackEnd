@@ -16,27 +16,34 @@ public interface QuestionMapper {
 
   QuestionMapper INSTANCE = Mappers.getMapper(QuestionMapper.class);
 
+
+
+
   // Domain to DTO - QuestionReadDTO로 변환 (기본적인 질문 정보)
   @Mapping(source = "question.id", target = "id")
   @Mapping(source = "question.studentCourse.student.name", target = "studentName")
   @Mapping(source = "question.recommended", target = "isRecommended")
+  @Mapping(source = "isSolved", target = "isSolved")  // isSolved 파라미터를 매핑
   QuestionReadDTO questionToQuestionReadDTO(Question question, boolean isSolved);
 
   // DTO to Domain - Question 엔티티로 변환 (질문 생성 시)
-  @Mapping(target = "id", ignore = true)      // id는 자동 생성되므로 무시
+  @Mapping(target = "id", ignore = true)
   @Mapping(target = "createdAt", ignore = true)
   @Mapping(target = "aiAnswer", ignore = true)
   @Mapping(target = "recommended", ignore = true)
-  @Mapping(target = "answers", ignore = true) // 답변은 생성 시 무시
+  @Mapping(target = "answers", ignore = true)
   @Mapping(source = "studentCourse", target = "studentCourse")
-  Question questionCreateDTOToQuestion(QuestionCreateDTO questionCreateDTO,
-      StudentCourse studentCourse);
+  Question questionCreateDTOToQuestion(QuestionCreateDTO questionCreateDTO, StudentCourse studentCourse);
 
   // Domain to DTO - QuestionDetailReadDTO로 변환 (질문 상세 조회 시)
   @Mapping(source = "question.studentCourse.student.name", target = "studentName")
-  @Mapping(source = "question.studentCourse.course.instructor.name", target = "teacherName")
+//  @Mapping(source = "question.studentCourse.course.teacher.name", target = "teacherName")
+  @Mapping(source = "question.studentCourse.student.id", target = "studentId")
+  @Mapping(source = "question.studentCourse.course.id", target = "courseId")
+  @Mapping(source = "question.content", target = "content")
   @Mapping(source = "question.recommended", target = "isRecommended")
-  @Mapping(source = "answers", target = "answers") // 연관된 답변을 List<AnswerReadDTO>로 변환
+  @Mapping(source = "question.createdAt", target = "createdAt")
+  @Mapping(source = "question.aiAnswer", target = "aiAnswer")
+  @Mapping(target = "answers", source = "answers")
   QuestionDetailReadDTO questionToQuestionDetailReadDTO(Question question, List<AnswerReadDTO> answers);
-
 }

@@ -1,6 +1,5 @@
 package com.example.academy.domain;
 
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -31,5 +30,3 @@ public class TeacherCourse {
   @JoinColumn(name = "course_id", nullable = false)
   private Course course;  // 강의
 }
-
-

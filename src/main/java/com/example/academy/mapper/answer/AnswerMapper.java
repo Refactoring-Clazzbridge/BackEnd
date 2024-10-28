@@ -24,14 +24,14 @@ public interface AnswerMapper {
   List<AnswerReadDTO> answersToAnswerReadDTOs(List<Answer> answers);
 
   // AnswerCreateDTO를 Answer 엔티티로 변환
-  @Mapping(target = "id", ignore = true)  // id는 자동 생성되므로 무시
+  @Mapping(target = "id", ignore = true)
   @Mapping(source = "question", target = "question")
   @Mapping(source = "teacher", target = "teacher")
-  @Mapping(source = "answerCreateDTO.content", target = "content")  // 명확한 content 매핑
+  @Mapping(source = "answerCreateDTO.content", target = "content")
   Answer answerCreateDTOToAnswer(AnswerCreateDTO answerCreateDTO, Question question, Member teacher);
 
   // AnswerUpdateDTO를 Answer 엔티티로 변환
-  @Mapping(target = "question", ignore = true)  // 질문 정보는 수정되지 않음
-  @Mapping(target = "teacher", ignore = true)   // 교사 정보는 수정되지 않음
+  @Mapping(target = "question", ignore = true)
+  @Mapping(target = "teacher", ignore = true)
   Answer answerUpdateDTOToAnswer(AnswerUpdateDTO answerUpdateDTO);
 }
