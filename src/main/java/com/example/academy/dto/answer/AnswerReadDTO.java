@@ -11,5 +11,6 @@ public class AnswerReadDTO {
   private Long id;
   private String content;
   private String teacherName;
+  private Long teacherId; // 추가
   private Date createdAt;
 }

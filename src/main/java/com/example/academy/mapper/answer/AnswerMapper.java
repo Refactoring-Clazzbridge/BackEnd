@@ -17,7 +17,9 @@ public interface AnswerMapper {
   AnswerMapper INSTANCE = Mappers.getMapper(AnswerMapper.class);
 
   // Answer 엔티티를 AnswerReadDTO로 변환
+  @Mapping(source = "teacher.id", target = "teacherId")
   @Mapping(source = "teacher.name", target = "teacherName")
+  @Mapping(source = "createdAt", target = "createdAt")
   AnswerReadDTO answerToAnswerReadDTO(Answer answer);
 
   // List<Answer>를 List<AnswerReadDTO>로 변환
@@ -33,5 +35,6 @@ public interface AnswerMapper {
   // AnswerUpdateDTO를 Answer 엔티티로 변환
   @Mapping(target = "question", ignore = true)
   @Mapping(target = "teacher", ignore = true)
+  @Mapping(target = "createdAt", ignore = true) // createdAt 필드 무시
   Answer answerUpdateDTOToAnswer(AnswerUpdateDTO answerUpdateDTO);
 }

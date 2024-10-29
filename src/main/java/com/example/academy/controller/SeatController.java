@@ -6,6 +6,7 @@ import com.example.academy.dto.seat.SeatUpdateDTO;
 import com.example.academy.dto.seat.SeatListDTO;
 import com.example.academy.service.SeatService;
 import io.swagger.v3.oas.annotations.Operation;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -77,11 +78,18 @@ public class SeatController {
 
   @Operation(summary = "특정 멤버의 좌석 상태 반환")
   @GetMapping("/status/{memberId}")
-  public ResponseEntity<SeatListDTO> getSeatStatusByMemberId(@PathVariable String memberId) {
-    Optional<SeatListDTO> seatStatus = seatService.getSeatStatusByMemberId(memberId);
-    return seatStatus.map(ResponseEntity::ok)
-        .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(null));
+  public ResponseEntity<SeatListDTO> getSeatStatusByMemberId(@PathVariable Long memberId) {
+    SeatListDTO seatStatus = seatService.getSeatStatusByMemberId(memberId).orElse(new SeatListDTO());
+
+    return ResponseEntity.ok().body(seatStatus);
+  }
+
+  @Operation(summary = "학생의 온라인 상태 업데이트", description = "좌석 ID로 학생의 온라인 상태를 업데이트합니다.")
+  @PutMapping("/status/{seatId}")
+  public ResponseEntity<String> updateStudentOnlineStatus(@PathVariable Long seatId, @RequestBody Map<String, Boolean> onlineStatus) {
+    boolean isOnline = onlineStatus.get("isOnline");
+    seatService.updateOnlineStatus(seatId, isOnline);
+    return ResponseEntity.ok("학생의 온라인 상태가 업데이트되었습니다.");
   }
 }
 
