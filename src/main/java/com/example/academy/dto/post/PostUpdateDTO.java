@@ -8,7 +8,6 @@ import lombok.Setter;
 public class PostUpdateDTO {
 
     private Long id;
-    private Long courseId;
     private String title;
     private String content;
 }

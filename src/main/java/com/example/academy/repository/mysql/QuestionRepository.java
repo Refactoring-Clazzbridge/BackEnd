@@ -1,6 +1,7 @@
 package com.example.academy.repository.mysql;
 
-import com.example.academy.domain.mysql.Question;
+import com.example.academy.domain.Question;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,4 +13,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, Long> {
 
+
+  List<Question> findByStudentCourse_Course_Id(Long courseId);
 }

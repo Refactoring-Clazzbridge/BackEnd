@@ -1,7 +1,7 @@
 package com.example.academy.controller;
 
 
-import com.example.academy.domain.mysql.Classroom;
+import com.example.academy.domain.Classroom;
 import com.example.academy.dto.classroom.AddClassroomDTO;
 import com.example.academy.dto.classroom.ClassroomNameDTO;
 import com.example.academy.dto.classroom.UpdateClassroomDTO;
@@ -61,11 +61,15 @@ public class ClassroomController {
     return ResponseEntity.status(HttpStatus.OK).body(name);
   }
 
-  @DeleteMapping
+  @DeleteMapping("{id}")
   @Operation(summary = "강의실 삭제", security = {@SecurityRequirement(name = "bearerAuth")})
-  public ResponseEntity<?> deleteClassroom(Long id){
-    classroomService.deleteClassroom(id);
-    return ResponseEntity.ok("삭제 성공");
+  public ResponseEntity<?> deleteClassroom(@PathVariable Long id){
+    try {
+      classroomService.deleteClassroom(id);
+      return ResponseEntity.ok("삭제 성공");
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
   }
 
   @PutMapping

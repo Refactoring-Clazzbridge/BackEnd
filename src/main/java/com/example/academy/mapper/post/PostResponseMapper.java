@@ -1,6 +1,6 @@
 package com.example.academy.mapper.post;
 
-import com.example.academy.domain.mysql.Post;
+import com.example.academy.domain.Post;
 import com.example.academy.dto.post.PostResponseDTO;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,22 +13,20 @@ public class PostResponseMapper {
         if (post == null) {
             return null;
         }
-
-        return new PostResponseDTO(
-            post.getId(),
-            post.getTitle(),
-            post.getContent(),
-            post.getAuthor().getName(),
-            post.getBoardType().getType(),
-            post.getCourse() != null ? post.getCourse().getTitle() : null,
-            post.getCreatedAt()
-        );
+        return PostResponseDTO.builder()
+            .id(post.getId())
+            .authorId(post.getAuthor().getId())
+            .authorName(post.getAuthor().getName())
+            .title(post.getTitle())
+            .content(post.getContent())
+            .boardType(post.getBoardType().getType())
+            .courseTitle(post.getCourse() != null ? post.getCourse().getTitle() : null)
+            .createdAt(post.getCreatedAt())
+            .build();
     }
 
     public List<PostResponseDTO> toDtoList(List<Post> posts) {
-        if (posts.isEmpty()) {
-            return null;
-        }
+       
         return posts.stream()
             .map(todo -> toDto(todo))
             .collect(Collectors.toList());

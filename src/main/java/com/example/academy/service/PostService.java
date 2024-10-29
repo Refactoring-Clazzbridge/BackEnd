@@ -1,9 +1,10 @@
 package com.example.academy.service;
 
-import com.example.academy.domain.mysql.BoardType;
-import com.example.academy.domain.mysql.Course;
-import com.example.academy.domain.mysql.Member;
-import com.example.academy.domain.mysql.Post;
+import com.example.academy.domain.BoardType;
+import com.example.academy.domain.Course;
+import com.example.academy.domain.Member;
+import com.example.academy.domain.Post;
+import com.example.academy.domain.StudentCourse;
 import com.example.academy.dto.member.CustomUserDetails;
 import com.example.academy.dto.post.PostCreateDTO;
 import com.example.academy.dto.post.PostResponseDTO;
@@ -25,7 +26,6 @@ import com.example.academy.repository.mysql.StudentCourseRepository;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import javax.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,9 +67,13 @@ public class PostService {
     }
 
     public List<PostResponseDTO> findAllPosts() {
-        List<Post> posts = postRepository.findAll();
-        return postResponseMapper.toDtoList(posts).stream()
-            .sorted(Comparator.comparing(PostResponseDTO::getId).reversed()).toList();
+//        List<Post> posts = postRepository.findAll();
+
+        List<Post> posts = postRepository.findAllPostsOrderByBoardType();
+
+//        return postResponseMapper.toDtoList(posts).stream()
+//            .sorted(Comparator.comparing(PostResponseDTO::getId).reversed()).toList();
+        return postResponseMapper.toDtoList(posts);
     }
 
     public List<PostResponseDTO> getCourseNotices(Long courseId) {
@@ -80,7 +84,7 @@ public class PostService {
 
         if (!posts.isEmpty()) {
             return postResponseMapper.toDtoList(posts).stream()
-                .filter(post -> BoardTypes.NOTICES.getDescription().equals(post.getBoardType()))
+                .filter(post -> BoardTypes.공지사항.name().equals(post.getBoardType()))
                 .sorted(Comparator.comparing(PostResponseDTO::getId).reversed())
                 .toList();
         } else {
@@ -97,7 +101,7 @@ public class PostService {
 
         if (!posts.isEmpty()) {
             return postResponseMapper.toDtoList(posts).stream()
-                .filter(post -> BoardTypes.FREE.getDescription().equals(post.getBoardType()))
+                .filter(post -> BoardTypes.일반.name().equals(post.getBoardType()))
                 .sorted(Comparator.comparing(PostResponseDTO::getId).reversed())
                 .toList();
         } else {
@@ -108,7 +112,7 @@ public class PostService {
     public List<PostResponseDTO> findAllFreePosts() {
         List<Post> posts = postRepository.findAll()
             .stream()
-            .filter(post -> post.getBoardType().getType().equals("일반"))
+            .filter(post -> post.getBoardType().getType().equals(BoardTypes.일반.name()))
             .toList();
 
         return postResponseMapper.toDtoList(posts);
@@ -117,7 +121,7 @@ public class PostService {
     public List<PostResponseDTO> findAllNotificationPosts() {
         List<Post> posts = postRepository.findAll()
             .stream()
-            .filter(post -> post.getBoardType().getType().equals("공지사항"))
+            .filter(post -> post.getBoardType().getType().equals(BoardTypes.공지사항.name()))
             .toList();
         return postResponseMapper.toDtoList(posts);
     }
@@ -133,17 +137,33 @@ public class PostService {
             .orElseThrow(PostBadRequestException::new);
 
         Course course = null;
-        if (postDTO.getCourseId() != null) {
-            course = courseRepository.findById(postDTO.getCourseId())
-                .orElseThrow(PostBadRequestException::new);
+        Post savedPost;
+
+        // 코스 ID가 없을 경우 전체 게시글로 저장
+        if (postDTO.getCourseId() != null && postDTO.getCourseId() != 0) {
+            // 학생 강의 조회, 관리자의 경우 강의가 없을 수 있음
+            if (!member.isAdmin()) {
+                StudentCourse studentCourse = studentCourseRepository.findByStudentId(
+                    member.getId());
+                if (studentCourse != null) {
+                    course = studentCourse.getCourse();
+                }
+            } else {
+                course = courseRepository.findById(postDTO.getCourseId())
+                    .orElseThrow(() -> new NotFoundException("해당 과정이 존재하지 않습니다."));
+            }
+
+            if (boardType.getType().equals(BoardTypes.공지사항.name()) && !member.getMemberType()
+                .getType()
+                .equals(MemberRole.ROLE_ADMIN.name())) {
+                throw new UnauthorizedException();
+            }
+            savedPost = postCreateMapper.toEntity(postDTO, member, boardType, course);
+        } else {
+            // courseId가 0인 경우 전체 게시글로 저장
+            savedPost = postCreateMapper.toEntity(postDTO, member, boardType);
         }
 
-        if (boardType.getType().equals("공지사항") && !member.getMemberType().getType()
-            .equals("ROLE_ADMIN")) {
-            throw new PostBadRequestException();
-        }
-
-        Post savedPost = postCreateMapper.toEntity(postDTO, member, boardType, course);
         postRepository.save(savedPost);
 
         return postResponseMapper.toDto(savedPost);
@@ -172,11 +192,18 @@ public class PostService {
         }
 
         // 강의 정보가 있을 경우 강의 유효성 체크
-        if (postDTO.getCourseId() != null) {
-            Course course = courseRepository.findById(postDTO.getCourseId())
-                .orElseThrow(() -> new NotFoundException(
-                    "존재하지 않는 강의입니다 ID: " + postDTO.getCourseId()));
+        Course course = null;
 
+        if (!member.isAdmin()) {
+            // 학생 강의 조회
+            StudentCourse studentCourse = studentCourseRepository.findByStudentId(member.getId());
+            if (studentCourse != null) {
+                course = studentCourse.getCourse();
+            }
+        }
+
+        // 관리자가 아닌 사용자의 경우, 게시글 작성자가 수강 중인 강의인지 확인
+        if (course != null) {
             studentCourseRepository.findByStudentIdAndCourseId(updatedPost.getAuthor().getId(),
                     course.getId())
                 .orElseThrow(() -> new NotFoundException("회원이 수강 중인 강의번호와 일치하지 않습니다"));
@@ -255,5 +282,42 @@ public class PostService {
         } else {
             return Collections.emptyList(); // 빈 리스트 반환
         }
+    }
+
+    public List<PostResponseDTO> getUserCourseFreePosts() {
+        CustomUserDetails user = authService.getAuthenticatedUser();
+
+        StudentCourse studentCourse = studentCourseRepository.findByStudentId(user.getUserId());
+
+        if (studentCourse != null) {
+            List<Post> freePosts = postRepository.findByCourse(studentCourse.getCourse());
+
+            if (!freePosts.isEmpty()) {
+                return postResponseMapper.toDtoList(freePosts).stream()
+                    .filter(freePost -> freePost.getBoardType().equals(BoardTypes.일반.name()))
+                    .sorted(Comparator.comparing(PostResponseDTO::getId).reversed())
+                    .toList();
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    public List<PostResponseDTO> getUserCourseNotifications() {
+        CustomUserDetails user = authService.getAuthenticatedUser();
+
+        StudentCourse studentCourse = studentCourseRepository.findByStudentId(user.getUserId());
+
+        if (studentCourse != null) {
+            List<Post> notifications = postRepository.findByCourse(studentCourse.getCourse());
+
+            if (!notifications.isEmpty()) {
+                return postResponseMapper.toDtoList(notifications).stream()
+                    .filter(
+                        notification -> notification.getBoardType().equals(BoardTypes.공지사항.name()))
+                    .sorted(Comparator.comparing(PostResponseDTO::getId).reversed())
+                    .toList();
+            }
+        }
+        return Collections.emptyList();
     }
 }

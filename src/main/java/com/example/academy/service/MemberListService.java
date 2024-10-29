@@ -8,6 +8,7 @@ import com.example.academy.dto.member.GetChatDetailMemberDTO;
 import com.example.academy.dto.member.GetDetailMemberDTO;
 import com.example.academy.dto.member.GetMemberDTO;
 import com.example.academy.repository.mysql.CourseRepository;
+import com.example.academy.repository.mysql.StudentCourseRepository;
 import com.example.academy.repository.mysql.MemberRepository;
 import com.example.academy.repository.mysql.StudentCourseRepository;
 import java.util.ArrayList;
@@ -34,7 +35,14 @@ public class MemberListService {
   }
 
   public String getCheckRole(Long id) {
-    return memberRepository.findById(id).get().getMemberType().getType();
+    String type = memberRepository.findById(id).get().getMemberType().getType();
+    if (type.equals("ROLE_STUDENT")) {
+      List<StudentCourse> courseTitle = studentCourseRepository.findByStudent(memberRepository.findById(id).get());
+      return courseTitle.get(0).getCourse().getTitle();
+    } else {
+      List<Course> courseTitle = courseRepository.findByInstructor(memberRepository.findById(id).get());
+      return courseTitle.get(0).getTitle();
+    }
   }
 
   public GetDetailMemberDTO getMemberWithCourseInfo(Long memberId) {

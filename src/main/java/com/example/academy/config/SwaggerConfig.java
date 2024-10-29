@@ -12,19 +12,18 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SwaggerConfig {
 
-  @Bean
-  public OpenAPI customOpenAPI() {
-    return new OpenAPI()
-        .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
-        .components(new Components()
-            .addSecuritySchemes("bearerAuth",
-                new SecurityScheme()
-                    .type(SecurityScheme.Type.HTTP)
-                    .scheme("bearer")
-                    .bearerFormat("JWT")))
-        .security(List.of(new SecurityRequirement().addList("bearer-key")))
-        .info(new Info().title("API Documentation")
-            .version("1.0")
-            .description("API documentation for testing JWT authentication"));
-  }
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+            .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+            .components(new Components()
+                .addSecuritySchemes("bearerAuth",
+                    new SecurityScheme()
+                        .type(SecurityScheme.Type.HTTP)
+                        .scheme("bearer")
+                        .bearerFormat("JWT")))
+            .info(new Info().title("API Documentation")
+                .version("1.0")
+                .description("API documentation for testing JWT authentication"));
+    }
 }

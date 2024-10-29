@@ -1,10 +1,10 @@
 package com.example.academy.service;
 
 
-import com.example.academy.domain.mysql.AvatarImage;
-import com.example.academy.domain.mysql.Course;
-import com.example.academy.domain.mysql.Member;
-import com.example.academy.domain.mysql.StudentCourse;
+import com.example.academy.domain.AvatarImage;
+import com.example.academy.domain.Course;
+import com.example.academy.domain.Member;
+import com.example.academy.domain.StudentCourse;
 import com.example.academy.dto.member.MemberSignUpDTO;
 import com.example.academy.dto.member.MemberUpdateDTO;
 import com.example.academy.repository.mysql.CourseRepository;
@@ -142,15 +142,17 @@ public class MemberManageService {
                 errorMessage += "email 중복. ";
             }
 
-            System.out.println(errorMessage);
-            throw new DataIntegrityViolationException(errorMessage);
-        }
-        // DTO의 값으로 기존 데이터를 업데이트
-        member.setMemberId(memberUpdateDTO.getMemberId());
-        member.setPassword(bCryptPasswordEncoder.encode(memberUpdateDTO.getPassword())); // 비밀번호 인코딩
-        member.setName(memberUpdateDTO.getName());
-        member.setEmail(memberUpdateDTO.getEmail());
-        member.setPhone(memberUpdateDTO.getPhone());
+      System.out.println(errorMessage);
+      throw new DataIntegrityViolationException(errorMessage);
+    }
+    // DTO의 값으로 기존 데이터를 업데이트
+    member.setMemberId(memberUpdateDTO.getMemberId());
+    if(!memberUpdateDTO.getPassword().equals("") && !memberUpdateDTO.getPassword().isEmpty()) {
+      member.setPassword(bCryptPasswordEncoder.encode(memberUpdateDTO.getPassword())); // 비밀번호 인코딩
+    }
+    member.setName(memberUpdateDTO.getName());
+    member.setEmail(memberUpdateDTO.getEmail());
+    member.setPhone(memberUpdateDTO.getPhone());
 
         member.setMemberType(memberTypeRepositoy.findByType(memberUpdateDTO.getMemberType()).get());
 
@@ -172,7 +174,9 @@ public class MemberManageService {
             // 강사인 경우 과정 정보 업데이트
             Optional<Course> course = courseRepository.findByTitle(title); // 입력한 강의 정보
             if (course.isPresent() && course.get().getInstructor() != null) {
-                throw new RuntimeException("해당 과정명은 이미 배정된 강사가 있습니다.");
+                if(course.get().getInstructor().getMemberId() != memberUpdateDTO.getMemberId()) {
+                    throw new RuntimeException("해당 과정명은 이미 배정된 강사가 있습니다.");
+                }
             }
 
             if (course.isPresent()) { // 코스 값이 존재하면 true

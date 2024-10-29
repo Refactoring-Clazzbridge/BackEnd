@@ -1,9 +1,9 @@
 package com.example.academy.mapper.post;
 
-import com.example.academy.domain.mysql.BoardType;
-import com.example.academy.domain.mysql.Course;
-import com.example.academy.domain.mysql.Member;
-import com.example.academy.domain.mysql.Post;
+import com.example.academy.domain.BoardType;
+import com.example.academy.domain.Course;
+import com.example.academy.domain.Member;
+import com.example.academy.domain.Post;
 import com.example.academy.dto.post.PostCreateDTO;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +15,15 @@ public class PostCreateMapper {
             .boardType(boardType)
             .author(member)
             .course(course)
+            .title(postDTO.getTitle())
+            .content(postDTO.getContent())
+            .build();
+    }
+
+    public Post toEntity(PostCreateDTO postDTO, Member member, BoardType boardType) {
+        return Post.builder()
+            .boardType(boardType)
+            .author(member)
             .title(postDTO.getTitle())
             .content(postDTO.getContent())
             .build();

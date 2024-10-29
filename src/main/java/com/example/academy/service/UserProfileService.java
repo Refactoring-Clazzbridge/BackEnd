@@ -1,7 +1,8 @@
 package com.example.academy.service;
 
 
-import com.example.academy.domain.mysql.Member;
+import com.example.academy.domain.Member;
+import com.example.academy.dto.member.MemberProfileUpdateDTO;
 import com.example.academy.repository.mysql.MemberRepository;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,14 +22,21 @@ public class UserProfileService {
     return memberRepository.findById(id);
   }
 
-  public Member createOrUpdateUserProfile(Member member) {
+  public void createOrUpdateUserProfile(MemberProfileUpdateDTO updateDTO) {
     // 비밀번호가 null이 아니고 변경된 경우에만 암호화
-    if (member.getPassword() != null && !member.getPassword().isEmpty()) {
+    Member member = memberRepository.getById(updateDTO.getId());
+
+    if (updateDTO.getPassword() != null && !updateDTO.getPassword().isEmpty()) {
       // 비밀번호 암호화
-      String encodedPassword = passwordEncoder.encode(member.getPassword());
+      String encodedPassword = passwordEncoder.encode(updateDTO.getPassword());
       member.setPassword(encodedPassword);
     }
-    return memberRepository.save(member);
+    member.setEmail(updateDTO.getEmail());
+    member.setBio(updateDTO.getBio());
+    member.setGitUrl(updateDTO.getGitUrl());
+    member.setPhone(updateDTO.getPhone());
+
+    memberRepository.save(member);
   }
 
   // 비밀번호를 확인하는 메서드
