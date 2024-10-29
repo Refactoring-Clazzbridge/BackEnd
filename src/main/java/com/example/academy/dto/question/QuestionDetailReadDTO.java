@@ -17,8 +17,8 @@ public class QuestionDetailReadDTO {
   private Long courseId;
   private String content;
   private boolean isRecommended;
+  private boolean isSolved;
   private Date createdAt;
-  private String aiAnswer;
 
   private List<AnswerReadDTO> answers;
 

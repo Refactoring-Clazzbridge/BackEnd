@@ -36,14 +36,14 @@ public interface QuestionMapper {
   Question questionCreateDTOToQuestion(QuestionCreateDTO questionCreateDTO, StudentCourse studentCourse);
 
   // Domain to DTO - QuestionDetailReadDTO로 변환 (질문 상세 조회 시)
+  @Mapping(source = "question.id", target = "id")
   @Mapping(source = "question.studentCourse.student.name", target = "studentName")
-//  @Mapping(source = "question.studentCourse.course.teacher.name", target = "teacherName")
   @Mapping(source = "question.studentCourse.student.id", target = "studentId")
   @Mapping(source = "question.studentCourse.course.id", target = "courseId")
   @Mapping(source = "question.content", target = "content")
   @Mapping(source = "question.recommended", target = "isRecommended")
+  @Mapping(source = "isSolved", target = "isSolved")  // 추가된 isSolved 파라미터를 매핑
   @Mapping(source = "question.createdAt", target = "createdAt")
-  @Mapping(source = "question.aiAnswer", target = "aiAnswer")
   @Mapping(target = "answers", source = "answers")
-  QuestionDetailReadDTO questionToQuestionDetailReadDTO(Question question, List<AnswerReadDTO> answers);
+  QuestionDetailReadDTO questionToQuestionDetailReadDTO(Question question, boolean isSolved, List<AnswerReadDTO> answers);
 }
