@@ -4,20 +4,19 @@ import com.example.academy.domain.Assignment;
 import com.example.academy.domain.StudentCourse;
 import com.example.academy.domain.Submission;
 import com.example.academy.domain.SubmissionId;
+import com.example.academy.dto.submission.SubmissionCheckRequestDTO;
 import com.example.academy.dto.submission.SubmissionRequestDTO;
 import com.example.academy.dto.submission.SubmissionResponseDTO;
+import com.example.academy.exception.assignment.AssignmentDeadlineException;
 import com.example.academy.exception.common.NotFoundException;
 import com.example.academy.mapper.submission.SubmissionResponseMapper;
 import com.example.academy.repository.mysql.AssignmentRepository;
 import com.example.academy.repository.mysql.StudentCourseRepository;
 import com.example.academy.repository.mysql.SubmissionRepository;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,7 +25,8 @@ import org.springframework.web.multipart.MultipartFile;
 @Transactional(readOnly = true)
 public class SubmissionService {
 
-    private final String uploadDir = "/path/to/upload/directory"; // 파일 저장 경로
+    private final FileUploadService fileUploadService; // 오브젝트 스토리지 서비스
+
 
     private final SubmissionRepository submissionRepository;
     private final AssignmentRepository assignmentRepository;
@@ -34,11 +34,11 @@ public class SubmissionService {
 
     public SubmissionService(SubmissionRepository submissionRepository,
         AssignmentRepository assignmentRepository,
-        StudentCourseRepository studentCourseRepository) {
+        StudentCourseRepository studentCourseRepository, FileUploadService fileUploadService) {
         this.submissionRepository = submissionRepository;
         this.assignmentRepository = assignmentRepository;
         this.studentCourseRepository = studentCourseRepository;
-
+        this.fileUploadService = fileUploadService;
     }
 
     public List<SubmissionResponseDTO> getAllSubmission() {
@@ -50,8 +50,16 @@ public class SubmissionService {
     public SubmissionResponseDTO submitAssignment(SubmissionRequestDTO submissionRequestDTO,
         MultipartFile file) {
 
+        String fileUrl = null;
+
         // 파일 저장 처리
-        String fileUrl = storeFile(file);
+        if (file != null && !file.isEmpty()) {
+            try {
+                fileUrl = fileUploadService.uploadFile(file);
+            } catch (Exception e) {
+                throw new RuntimeException("파일 저장 중 오류 발생: " + e.getMessage());
+            }
+        }
 
         Long assignmentId = submissionRequestDTO.getAssignmentId();
         Long studentCourseId = submissionRequestDTO.getStudentCourseId();
@@ -59,6 +67,12 @@ public class SubmissionService {
         // 과제 찾기
         Assignment assignment = assignmentRepository.findById(assignmentId)
             .orElseThrow(() -> new NotFoundException("해당 과제를 찾을 수 없습니다."));
+
+        // 마감 기한 확인
+        LocalDate dueDate = assignment.getDueDate(); // 마감일 가져오기
+        if (dueDate != null && LocalDate.now().isAfter(dueDate)) {
+            throw new AssignmentDeadlineException("과제 제출 기한이 지났습니다.");
+        }
 
         // 학생 수강 정보 찾기
         StudentCourse studentCourse = studentCourseRepository.findById(studentCourseId)
@@ -80,8 +94,8 @@ public class SubmissionService {
         submission.setAssignment(assignment);
         submission.setStudentCourse(studentCourse);
         submission.setContent(submissionRequestDTO.getContent());
-        submission.setSubmissionUrl(fileUrl);
-        submission.setSubmissionDate(LocalDate.now()); // 제출 날짜는 현재 날짜
+        submission.setSubmissionUrl(fileUrl); // null일 수 있음
+        submission.setSubmissionDate(LocalDate.now());
 
         submissionRepository.save(submission);
 
@@ -89,9 +103,9 @@ public class SubmissionService {
     }
 
     public SubmissionResponseDTO getSubmission(Long assignmentId, Long studentCourseId) {
-        Submission submission = submissionRepository.findByIdAssignmentIdAndIdStudentCourseId(
-            assignmentId,
-            studentCourseId).orElseThrow(() -> new NotFoundException("과제 제출 데이터가 없습니다."));
+        Submission submission = submissionRepository
+            .findByIdAssignmentIdAndIdStudentCourseId(assignmentId, studentCourseId)
+            .orElseThrow(() -> new NotFoundException("과제 제출 데이터가 없습니다."));
 
         return SubmissionResponseMapper.toDto(submission);
     }
@@ -101,21 +115,25 @@ public class SubmissionService {
             throw new NotFoundException("과제 번호가 없습니다.");
         }
 
-        return SubmissionResponseMapper.toDtoList(
-            submissionRepository.findByIdAssignmentId(assignmentId));
+        return SubmissionResponseMapper
+            .toDtoList(submissionRepository
+                .findByIdAssignmentId(assignmentId));
     }
 
+    public SubmissionResponseDTO hasSubmitted(Long assignmentId, Long studentCourseId) {
+        Optional<Submission> submission = submissionRepository
+            .findByIdStudentCourseIdAndIdAssignmentId(studentCourseId, assignmentId);
 
-    // 파일 저장 메소드
-    private String storeFile(MultipartFile file) {
-        try {
-            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            Path filePath = Paths.get(uploadDir, fileName);
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-            return "/uploads/" + fileName;
-        } catch (Exception e) {
-            throw new RuntimeException("파일 업로드 실패: " + e.getMessage());
+        SubmissionResponseDTO responseDTO = null;
+        if (submission.isPresent()) {
+            responseDTO = SubmissionResponseMapper.toDto(submission.get());
         }
+
+        if (responseDTO != null) {
+            responseDTO.setSubmitted(true);
+        }
+
+        return responseDTO;
     }
+
 }

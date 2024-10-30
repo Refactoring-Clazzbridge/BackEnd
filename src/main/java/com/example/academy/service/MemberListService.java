@@ -1,14 +1,12 @@
 package com.example.academy.service;
 
 
-import com.example.academy.domain.mysql.Course;
-import com.example.academy.domain.mysql.Member;
-import com.example.academy.domain.mysql.StudentCourse;
-import com.example.academy.dto.member.GetChatDetailMemberDTO;
+import com.example.academy.domain.Course;
+import com.example.academy.domain.Member;
+import com.example.academy.domain.StudentCourse;
 import com.example.academy.dto.member.GetDetailMemberDTO;
 import com.example.academy.dto.member.GetMemberDTO;
 import com.example.academy.repository.mysql.CourseRepository;
-import com.example.academy.repository.mysql.StudentCourseRepository;
 import com.example.academy.repository.mysql.MemberRepository;
 import com.example.academy.repository.mysql.StudentCourseRepository;
 import java.util.ArrayList;
@@ -37,10 +35,12 @@ public class MemberListService {
   public String getCheckRole(Long id) {
     String type = memberRepository.findById(id).get().getMemberType().getType();
     if (type.equals("ROLE_STUDENT")) {
-      List<StudentCourse> courseTitle = studentCourseRepository.findByStudent(memberRepository.findById(id).get());
-      return courseTitle.get(0).getCourse().getTitle();
+      StudentCourse studentCourse = studentCourseRepository.findByStudent(
+          memberRepository.findById(id).get());
+      return studentCourse.getCourse().getTitle();
     } else {
-      List<Course> courseTitle = courseRepository.findByInstructor(memberRepository.findById(id).get());
+      List<Course> courseTitle = courseRepository.findByInstructor(
+          memberRepository.findById(id).get());
       return courseTitle.get(0).getTitle();
     }
   }
@@ -53,11 +53,9 @@ public class MemberListService {
     String courseTitle = "";
     if (member.getMemberType().getType().equals("ROLE_STUDENT")) {
       // Member가 수강한 StudentCourse 조회
-      List<StudentCourse> courses = studentCourseRepository.findByStudent(member);
-      courseTitle = courses.stream()
-          .findFirst()  // 여러 개일 경우 첫 번째 코스를 선택
-          .map(studentCourse -> studentCourse.getCourse().getTitle())  // Course 이름 가져오기
-          .orElse("");
+      StudentCourse studentCourse = studentCourseRepository.findByStudent(member);
+      courseTitle =
+          studentCourse.getCourse().getTitle() != null ? studentCourse.getCourse().getTitle() : "";
     } else if (member.getMemberType().getType().equals("ROLE_TEACHER")) {
       List<Course> courses = courseRepository.findByInstructor(member);
       courseTitle = courses.stream()
@@ -86,6 +84,7 @@ public class MemberListService {
   }
 
 
+
   public GetChatDetailMemberDTO getMemberForChat(Long memberId) {
     // Member 조회
     Member member = memberRepository.findById(memberId)
@@ -105,13 +104,12 @@ public class MemberListService {
     // 각 멤버에 대해 코스 정보 조회 및 DTO로 변환
     for (Member member : members) {
       if (member.getMemberType().getType().equals("ROLE_STUDENT")) {
-        List<StudentCourse> studentCourses = studentCourseRepository.findByStudent(member);
+        StudentCourse studentCourse = studentCourseRepository.findByStudent(member);
 
-        // 첫 번째 수강 코스의 이름을 가져오거나, 없으면 빈 문자열 반환
-        courseTitle = studentCourses.stream()
-            .findFirst()  // 여러 개일 경우 첫 번째 코스를 선택
-            .map(studentCourse -> studentCourse.getCourse().getTitle())
-            .orElse("");
+        // 수강 코스의 이름을 가져오거나, 없으면 빈 문자열 반환
+        courseTitle =
+            studentCourse.getCourse().getTitle() != null ? studentCourse.getCourse().getTitle()
+                : "";
       } else if (member.getMemberType().getType().equals("ROLE_TEACHER")) {
         List<Course> courses = courseRepository.findByInstructor(member);
 

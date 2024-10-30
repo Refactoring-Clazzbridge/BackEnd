@@ -19,6 +19,7 @@ public class SubmissionResponseMapper {
             .studentCourseId(submission.getId().getStudentCourseId())
             .content(submission.getContent())
             .submissionUrl(submission.getSubmissionUrl())
+            .submissionDate(submission.getSubmissionDate())
             .build();
     }
 
