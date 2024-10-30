@@ -1,5 +1,6 @@
 package com.example.academy.controller;
 
+import com.example.academy.dto.submission.SubmissionCheckRequestDTO;
 import com.example.academy.dto.submission.SubmissionRequestDTO;
 import com.example.academy.dto.submission.SubmissionResponseDTO;
 import com.example.academy.service.SubmissionService;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,7 +32,7 @@ public class SubmissionController {
     @PostMapping("")
     public ResponseEntity<SubmissionResponseDTO> submitAssignment(
         @ModelAttribute SubmissionRequestDTO submissionRequestDTO,
-        @RequestParam("file") MultipartFile file) {
+        @RequestParam(value = "file", required = false) MultipartFile file) {
         SubmissionResponseDTO submission = submissionService.submitAssignment(
             submissionRequestDTO, file);
         return ResponseEntity.ok().body(submission);
@@ -42,7 +44,6 @@ public class SubmissionController {
         List<SubmissionResponseDTO> response = submissionService.getAllSubmission();
         return ResponseEntity.ok().body(response);
     }
-
 
     @Operation(summary = "특정 과제 제출 조회", security = {@SecurityRequirement(name = "bearerAuth")})
     @GetMapping("/{assignmentId}/student/{studentCourseId}")
@@ -59,6 +60,17 @@ public class SubmissionController {
         @PathVariable Long assignmentId) {
         List<SubmissionResponseDTO> response = submissionService.getSubmissions(assignmentId);
         return ResponseEntity.ok().body(response);
+    }
+
+    @Operation(summary = "특정 과제 제출 체크", security = {@SecurityRequirement(name = "bearerAuth")})
+    @GetMapping("/check")
+    public ResponseEntity<SubmissionResponseDTO> checkSubmission(
+        @RequestParam Long studentCourseId,
+        @RequestParam Long assignmentId) {
+
+        SubmissionResponseDTO responseDTO = submissionService.hasSubmitted(studentCourseId,
+            assignmentId);
+        return ResponseEntity.ok().body(responseDTO);
     }
 
 

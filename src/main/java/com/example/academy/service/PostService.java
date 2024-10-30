@@ -288,7 +288,6 @@ public class PostService {
         CustomUserDetails user = authService.getAuthenticatedUser();
 
         StudentCourse studentCourse = studentCourseRepository.findByStudentId(user.getUserId());
-
         if (studentCourse != null) {
             List<Post> freePosts = postRepository.findByCourse(studentCourse.getCourse());
 
@@ -306,7 +305,7 @@ public class PostService {
         CustomUserDetails user = authService.getAuthenticatedUser();
 
         StudentCourse studentCourse = studentCourseRepository.findByStudentId(user.getUserId());
-
+        
         if (studentCourse != null) {
             List<Post> notifications = postRepository.findByCourse(studentCourse.getCourse());
 
