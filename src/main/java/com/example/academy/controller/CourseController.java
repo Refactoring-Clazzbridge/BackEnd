@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -46,14 +47,15 @@ public class CourseController {
         return ResponseEntity.ok(title);
     }
 
-    @Operation(summary = "강의에 속한 수강생 리스트 조회", security = {
+    @Operation(summary = "강의에 속한 수강생 리스트 및 특정 과제 제출 여부 조회", security = {
         @SecurityRequirement(name = "bearerAuth")})
-    @GetMapping("/{courseId}/students")
-    public ResponseEntity<List<StudentDTO>> getStudentsByCourseId(
-        @PathVariable(value = "courseId") Long courseId) {
-        List<StudentDTO> students = studentCourseService.getStudentsByCourseId(courseId);
+    @GetMapping("/students/{assignmentId}")
+    public ResponseEntity<List<StudentDTO>> studentsWithSubmissions(
+        @PathVariable(value = "assignmentId") Long assignmentId) {
+        List<StudentDTO> students = studentCourseService.studentsWithSubmissions(assignmentId);
         return ResponseEntity.ok(students);
     }
+
 
     @Operation(summary = "강의 전체 조회", security = {@SecurityRequirement(name = "bearerAuth")})
     @GetMapping

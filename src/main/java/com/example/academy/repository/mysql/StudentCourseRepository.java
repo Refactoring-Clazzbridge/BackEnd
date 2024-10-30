@@ -15,6 +15,8 @@ public interface StudentCourseRepository extends JpaRepository<StudentCourse, Lo
 
     Optional<StudentCourse> findById(Long id);
 
+    List<StudentCourse> findAllById(Long id);
+
     Optional<StudentCourse> findByStudentIdAndCourseId(Long id, Long id1);
 
     StudentCourse findByStudentId(Long id);

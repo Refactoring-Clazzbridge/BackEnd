@@ -1,6 +1,5 @@
 package com.example.academy.dto.member;
 
-import com.example.academy.domain.AvatarImage;
 import lombok.Builder;
 import lombok.Data;
 
@@ -16,5 +15,4 @@ public class StudentDTO {
         this.name = name;
         this.avatarImage = avatarImage;
     }
-
 }
