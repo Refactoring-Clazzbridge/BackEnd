@@ -234,4 +234,22 @@ public class CourseService {
     }
 
 
+    public Long getCourseIdForUser() {
+        CustomUserDetails user = authService.getAuthenticatedUser();
+
+        if (user.getUserType().equals(MemberRole.ROLE_STUDENT)) {
+            StudentCourse studentCourse = studentCourseRepository.findByStudentId(user.getUserId());
+            if (studentCourse == null) {
+                throw new NotFoundException("등록된 강의가 없습니다.");
+            }
+            return studentCourse.getCourse().getId();
+
+        } else if (user.getUserType().equals(MemberRole.ROLE_TEACHER)) {
+            Course course = courseRepository.findByInstructor_Id(user.getUserId())
+                .orElseThrow(() -> new NotFoundException("배정 받은 강의가 없습니다."));
+            return course.getId();
+        }
+
+        return null; // 유효하지 않은 역할일 경우 빈 값 반환
+    }
 }

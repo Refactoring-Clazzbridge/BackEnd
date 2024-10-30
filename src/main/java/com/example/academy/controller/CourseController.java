@@ -41,10 +41,9 @@ public class CourseController {
     }
 
 
-
     @Operation(summary = "강의명 전체 조회", security = {@SecurityRequirement(name = "bearerAuth")})
     @GetMapping("/title")
-    public ResponseEntity<List<?>> getCourseTitle(){
+    public ResponseEntity<List<?>> getCourseTitle() {
         List<CourseTitleDTO> title = courseService.getCourseTitle();
         return ResponseEntity.ok(title);
     }
@@ -60,12 +59,13 @@ public class CourseController {
 
     @Operation(summary = "강의 전체 조회", security = {@SecurityRequirement(name = "bearerAuth")})
     @GetMapping
-    public ResponseEntity<List<GetCourseDTO>> getAllCourse(){
+    public ResponseEntity<List<GetCourseDTO>> getAllCourse() {
         return ResponseEntity.ok(courseService.getAllCourse());
     }
+
     @Operation(summary = "강의 조회", security = {@SecurityRequirement(name = "bearerAuth")})
     @GetMapping("{id}")
-    public ResponseEntity<?> getCourse(@PathVariable Long id){
+    public ResponseEntity<?> getCourse(@PathVariable Long id) {
         try {
             List<GetCourseDTO> getCourseDTOS = courseService.getCourse(id);
             return ResponseEntity.ok(getCourseDTOS);
@@ -76,10 +76,9 @@ public class CourseController {
 
     @Operation(summary = "강의 시간 조회", security = {@SecurityRequirement(name = "bearerAuth")})
     @GetMapping("time/{title}")
-    public ResponseEntity<?> getTime(@PathVariable String title){
+    public ResponseEntity<?> getTime(@PathVariable String title) {
         return ResponseEntity.ok(courseService.getTime(title));
     }
-
 
 
     @PostMapping
@@ -105,10 +104,9 @@ public class CourseController {
     }
 
 
-
     @DeleteMapping("{id}")
     @Operation(summary = "강의 삭제", security = {@SecurityRequirement(name = "bearerAuth")})
-    public ResponseEntity<?> deleteCourse(@PathVariable Long id){
+    public ResponseEntity<?> deleteCourse(@PathVariable Long id) {
         try {
             courseService.deleteCourse(id);
             return ResponseEntity.ok("삭제완료");
@@ -133,5 +131,11 @@ public class CourseController {
     @GetMapping("/student")
     public ResponseEntity<Long> getStudentCourseId() {
         return ResponseEntity.ok(courseService.getStudentCourseId());
+    }
+
+    @Operation(summary = "수강생 및 강사 강의 번호 반환")
+    @GetMapping("/userCourseId")
+    public ResponseEntity<Long> getCourseIdForUser() {
+        return ResponseEntity.ok(courseService.getCourseIdForUser());
     }
 }
