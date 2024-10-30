@@ -1,6 +1,7 @@
 package com.example.academy.mapper.member;
 
 import com.example.academy.domain.Member;
+import com.example.academy.domain.StudentCourse;
 import com.example.academy.dto.auth.AuthResponseDTO;
 import com.example.academy.dto.member.StudentDTO;
 import java.util.List;

@@ -5,7 +5,10 @@ import com.example.academy.dto.course.CourseAddDTO;
 import com.example.academy.dto.course.CourseTitleDTO;
 import com.example.academy.dto.course.CourseUpdateDTO;
 import com.example.academy.dto.course.GetCourseDTO;
+import com.example.academy.dto.member.StudentDTO;
+import com.example.academy.dto.course.SelectCourseDTO;
 import com.example.academy.service.CourseService;
+import com.example.academy.service.StudentCourseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -28,9 +32,12 @@ public class CourseController {
 
     @Autowired
     private final CourseService courseService;
+    private final StudentCourseService studentCourseService;
 
-    public CourseController(CourseService courseService) {
+    public CourseController(CourseService courseService,
+        StudentCourseService studentCourseService) {
         this.courseService = courseService;
+        this.studentCourseService = studentCourseService;
     }
 
 
@@ -42,6 +49,14 @@ public class CourseController {
         return ResponseEntity.ok(title);
     }
 
+    @Operation(summary = "강의에 속한 수강생 리스트 및 특정 과제 제출 여부 조회", security = {
+        @SecurityRequirement(name = "bearerAuth")})
+    @GetMapping("/students/{assignmentId}")
+    public ResponseEntity<List<StudentDTO>> studentsWithSubmissions(
+        @PathVariable(value = "assignmentId") Long assignmentId) {
+        List<StudentDTO> students = studentCourseService.studentsWithSubmissions(assignmentId);
+        return ResponseEntity.ok(students);
+    }
 
     @Operation(summary = "강의 전체 조회", security = {@SecurityRequirement(name = "bearerAuth")})
     @GetMapping
@@ -100,7 +115,23 @@ public class CourseController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error 강의 삭제 실패");
         }
+    } // 여기 괄호 추가됨
 
+    @Operation(summary = "강의실 강의 선택")
+    @GetMapping("/select")
+    public ResponseEntity<List<SelectCourseDTO>> SeatAllCourse() {
+        return ResponseEntity.ok(courseService.seatAllCourse());
     }
 
+    @Operation(summary = "강의 번호 반환")
+    @GetMapping("/teacher")
+    public ResponseEntity<Long> getTeacherByCourseId() {
+        return ResponseEntity.ok(courseService.getTeacherByCourseId());
+    }
+
+    @Operation(summary = "학생의 강의 번호 반환")
+    @GetMapping("/student")
+    public ResponseEntity<Long> getStudentCourseId() {
+        return ResponseEntity.ok(courseService.getStudentCourseId());
+    }
 }
