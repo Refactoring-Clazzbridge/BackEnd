@@ -286,37 +286,53 @@ public class PostService {
 
     public List<PostResponseDTO> getUserCourseFreePosts() {
         CustomUserDetails user = authService.getAuthenticatedUser();
+        Course course;
 
-        StudentCourse studentCourse = studentCourseRepository.findByStudentId(user.getUserId());
-        if (studentCourse != null) {
-            List<Post> freePosts = postRepository.findByCourse(studentCourse.getCourse());
-
-            if (!freePosts.isEmpty()) {
-                return postResponseMapper.toDtoList(freePosts).stream()
-                    .filter(freePost -> freePost.getBoardType().equals(BoardTypes.일반.name()))
-                    .sorted(Comparator.comparing(PostResponseDTO::getId).reversed())
-                    .toList();
+        // 강사일 경우 강의 ID 가져오기
+        if (user.getUserType().equals(MemberRole.ROLE_TEACHER)) {
+            course = courseRepository.findByInstructor_Id(user.getUserId())
+                .orElseThrow(() -> new NotFoundException("배정된 강의가 없습니다."));
+        } else {
+            // 학생일 경우 강의 ID 가져오기
+            StudentCourse studentCourse = studentCourseRepository.findByStudentId(user.getUserId());
+            if (studentCourse == null) {
+                return Collections.emptyList();
             }
+            course = studentCourse.getCourse();
         }
-        return Collections.emptyList();
+
+        // 강의에 맞는 게시글 목록을 가져와서 공지사항을 제외하고 반환
+        List<Post> freePosts = postRepository.findByCourse(course);
+        return freePosts.stream()
+            .filter(post -> !post.getBoardType().equals(BoardTypes.공지사항.name()))
+            .map(postResponseMapper::toDto)
+            .sorted(Comparator.comparing(PostResponseDTO::getId).reversed())
+            .toList();
     }
 
     public List<PostResponseDTO> getUserCourseNotifications() {
         CustomUserDetails user = authService.getAuthenticatedUser();
+        Course course;
 
-        StudentCourse studentCourse = studentCourseRepository.findByStudentId(user.getUserId());
-        
-        if (studentCourse != null) {
-            List<Post> notifications = postRepository.findByCourse(studentCourse.getCourse());
-
-            if (!notifications.isEmpty()) {
-                return postResponseMapper.toDtoList(notifications).stream()
-                    .filter(
-                        notification -> notification.getBoardType().equals(BoardTypes.공지사항.name()))
-                    .sorted(Comparator.comparing(PostResponseDTO::getId).reversed())
-                    .toList();
+        // 강사일 경우 강의 ID 가져오기
+        if (user.getUserType().equals(MemberRole.ROLE_TEACHER)) {
+            course = courseRepository.findByInstructor_Id(user.getUserId())
+                .orElseThrow(() -> new NotFoundException("배정된 강의가 없습니다."));
+        } else {
+            // 학생일 경우 강의 ID 가져오기
+            StudentCourse studentCourse = studentCourseRepository.findByStudentId(user.getUserId());
+            if (studentCourse == null) {
+                return Collections.emptyList();
             }
+            course = studentCourse.getCourse();
         }
-        return Collections.emptyList();
+
+        // 강의에 맞는 게시글 목록을 가져와서 공지사항만 필터링하여 반환
+        List<Post> notifications = postRepository.findByCourse(course);
+        return notifications.stream()
+            .filter(post -> post.getBoardType().equals(BoardTypes.공지사항.name()))
+            .map(postResponseMapper::toDto)
+            .sorted(Comparator.comparing(PostResponseDTO::getId).reversed())
+            .toList();
     }
 }

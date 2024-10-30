@@ -25,8 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Transactional(readOnly = true)
 public class SubmissionService {
 
-    private final FileUploadService fileUploadService; // 오브젝트 스토리지 서비스
-
 
     private final SubmissionRepository submissionRepository;
     private final AssignmentRepository assignmentRepository;
@@ -34,11 +32,10 @@ public class SubmissionService {
 
     public SubmissionService(SubmissionRepository submissionRepository,
         AssignmentRepository assignmentRepository,
-        StudentCourseRepository studentCourseRepository, FileUploadService fileUploadService) {
+        StudentCourseRepository studentCourseRepository) {
         this.submissionRepository = submissionRepository;
         this.assignmentRepository = assignmentRepository;
         this.studentCourseRepository = studentCourseRepository;
-        this.fileUploadService = fileUploadService;
     }
 
     public List<SubmissionResponseDTO> getAllSubmission() {
@@ -51,15 +48,6 @@ public class SubmissionService {
         MultipartFile file) {
 
         String fileUrl = null;
-
-        // 파일 저장 처리
-        if (file != null && !file.isEmpty()) {
-            try {
-                fileUrl = fileUploadService.uploadFile(file);
-            } catch (Exception e) {
-                throw new RuntimeException("파일 저장 중 오류 발생: " + e.getMessage());
-            }
-        }
 
         Long assignmentId = submissionRequestDTO.getAssignmentId();
         Long studentCourseId = submissionRequestDTO.getStudentCourseId();
