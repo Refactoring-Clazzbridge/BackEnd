@@ -12,6 +12,7 @@ import com.example.academy.dto.question.QuestionReadDTO;
 import com.example.academy.dto.question.QuestionToggleRecommendedDTO;
 import com.example.academy.dto.question.QuestionUpdateDTO;
 import com.example.academy.enums.MemberRole;
+import com.example.academy.exception.post.PostBadRequestException;
 import com.example.academy.exception.post.PostEmptyException;
 import com.example.academy.exception.post.PostNotFoundException;
 import com.example.academy.mapper.question.QuestionMapper;
@@ -39,8 +40,10 @@ public class QuestionService {
   private final QuestionMapper questionMapper = QuestionMapper.INSTANCE;
 
   @Autowired
-  public QuestionService(QuestionRepository questionRepository, MemberRepository memberRepository, AuthService authService,
-      StudentCourseRepository studentCourseRepository, CourseRepository courseRepository, AnswerService answerService) {
+  public QuestionService(QuestionRepository questionRepository, MemberRepository memberRepository,
+      AuthService authService,
+      StudentCourseRepository studentCourseRepository, CourseRepository courseRepository,
+      AnswerService answerService) {
     this.questionRepository = questionRepository;
     this.memberRepository = memberRepository;
     this.authService = authService;
@@ -85,15 +88,19 @@ public class QuestionService {
   }
 
   public QuestionReadDTO createQuestion(QuestionCreateDTO questionCreateDTO) {
-    Member student = memberRepository.findById(questionCreateDTO.getMemberId())
-        .orElseThrow(() -> new RuntimeException("존재하지 않는 회원입니다 ID: " + questionCreateDTO.getMemberId()));
-    Course course = courseRepository.findById(questionCreateDTO.getCourseId())
-        .orElseThrow(() -> new RuntimeException("존재하지 않는 강의입니다 ID: " + questionCreateDTO.getCourseId()));
+    CustomUserDetails user = authService.getAuthenticatedUser();
+
+    Member student = memberRepository.findById(user.getUserId())
+        .orElseThrow(PostBadRequestException::new);
+
+    Course course = studentCourseRepository.findByStudentId(user.getUserId()).getCourse();
+
     StudentCourse studentCourse = studentCourseRepository.findByStudentIdAndCourseId(
             student.getId(), course.getId())
         .orElseThrow(() -> new RuntimeException("회원이 수강"));
 
-    Question newQuestion = questionMapper.questionCreateDTOToQuestion(questionCreateDTO, studentCourse);
+    Question newQuestion = questionMapper.questionCreateDTOToQuestion(questionCreateDTO,
+        studentCourse);
     Question savedQuestion = questionRepository.save(newQuestion);
 
     return questionMapper.questionToQuestionReadDTO(savedQuestion, false);
@@ -110,7 +117,8 @@ public class QuestionService {
     return questionMapper.questionToQuestionReadDTO(existingQuestion, isSolved);
   }
 
-  public QuestionReadDTO recommendQuestion(QuestionToggleRecommendedDTO questionToggleRecommendedDTO) {
+  public QuestionReadDTO recommendQuestion(
+      QuestionToggleRecommendedDTO questionToggleRecommendedDTO) {
     Question existingQuestion = questionRepository.findById(questionToggleRecommendedDTO.getId())
         .orElseThrow();
 

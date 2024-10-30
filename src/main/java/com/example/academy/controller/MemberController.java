@@ -3,6 +3,7 @@ package com.example.academy.controller;
 import com.example.academy.dto.member.GetChatDetailMemberDTO;
 import com.example.academy.dto.member.GetDetailMemberDTO;
 import com.example.academy.dto.member.GetMemberDTO;
+import com.example.academy.dto.member.GetMemberForChatDTO;
 import com.example.academy.dto.member.MemberSignUpDTO;
 import com.example.academy.dto.member.MemberUpdateDTO;
 import com.example.academy.service.MemberListService;
@@ -36,8 +37,8 @@ public class MemberController {
   }
 
   @GetMapping("/check/{userId}")
-  @Operation(summary = "강의 확인", security = {@SecurityRequirement(name = "bearerAuth")})
-  public ResponseEntity<?> courseCheck(@PathVariable Long userId) {
+  @Operation(summary = "권한 확인", security = {@SecurityRequirement(name = "bearerAuth")})
+  public ResponseEntity<?> roleCheck(@PathVariable Long userId) {
     return ResponseEntity.ok(memberListService.getCheckRole(userId));
   }
 
@@ -67,6 +68,13 @@ public class MemberController {
   @GetMapping
   public ResponseEntity<List<GetMemberDTO>> getAllMembersWithCoursesInfo() {
     List<GetMemberDTO> memberDTOs = memberListService.getAllMembersWithCourses();
+    return ResponseEntity.ok(memberDTOs);
+  }
+
+  @Operation(summary = "관리자 포함 전체 회원 조회", security = {@SecurityRequirement(name = "bearerAuth")})
+  @GetMapping("/all")
+  public ResponseEntity<List<GetMemberForChatDTO>> getAllMembers() {
+    List<GetMemberForChatDTO> memberDTOs = memberListService.getAllMembers();
     return ResponseEntity.ok(memberDTOs);
   }
 
