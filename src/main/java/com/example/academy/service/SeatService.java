@@ -236,6 +236,4 @@ public class SeatService {
     seat.setIsOnline(isOnline);
     seatRepository.save(seat);
   }
-
-
 }
