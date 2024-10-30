@@ -1,21 +1,21 @@
 package com.example.academy.controller;
 
+
 import com.example.academy.dto.course.CourseAddDTO;
 import com.example.academy.dto.course.CourseTitleDTO;
 import com.example.academy.dto.course.CourseUpdateDTO;
 import com.example.academy.dto.course.GetCourseDTO;
-import com.example.academy.dto.member.MemberDTO;
 import com.example.academy.dto.member.StudentDTO;
 import com.example.academy.dto.course.SelectCourseDTO;
 import com.example.academy.service.CourseService;
 import com.example.academy.service.StudentCourseService;
-import com.example.academy.service.SubmissionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,9 +40,11 @@ public class CourseController {
         this.studentCourseService = studentCourseService;
     }
 
+
+
     @Operation(summary = "강의명 전체 조회", security = {@SecurityRequirement(name = "bearerAuth")})
     @GetMapping("/title")
-    public ResponseEntity<List<?>> getCourseTitle() {
+    public ResponseEntity<List<?>> getCourseTitle(){
         List<CourseTitleDTO> title = courseService.getCourseTitle();
         return ResponseEntity.ok(title);
     }
@@ -56,16 +58,14 @@ public class CourseController {
         return ResponseEntity.ok(students);
     }
 
-
     @Operation(summary = "강의 전체 조회", security = {@SecurityRequirement(name = "bearerAuth")})
     @GetMapping
-    public ResponseEntity<List<GetCourseDTO>> getAllCourse() {
+    public ResponseEntity<List<GetCourseDTO>> getAllCourse(){
         return ResponseEntity.ok(courseService.getAllCourse());
     }
-
     @Operation(summary = "강의 조회", security = {@SecurityRequirement(name = "bearerAuth")})
     @GetMapping("{id}")
-    public ResponseEntity<?> getCourse(@PathVariable Long id) {
+    public ResponseEntity<?> getCourse(@PathVariable Long id){
         try {
             List<GetCourseDTO> getCourseDTOS = courseService.getCourse(id);
             return ResponseEntity.ok(getCourseDTOS);
@@ -73,6 +73,13 @@ public class CourseController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
+
+    @Operation(summary = "강의 시간 조회", security = {@SecurityRequirement(name = "bearerAuth")})
+    @GetMapping("time/{title}")
+    public ResponseEntity<?> getTime(@PathVariable String title){
+        return ResponseEntity.ok(courseService.getTime(title));
+    }
+
 
 
     @PostMapping
@@ -86,7 +93,7 @@ public class CourseController {
         }
     }
 
-    @PutMapping
+    @PutMapping()
     @Operation(summary = "강의 변경", security = {@SecurityRequirement(name = "bearerAuth")})
     public ResponseEntity<?> updateCourse(@RequestBody CourseUpdateDTO courseUpdateDTO) {
         try {
@@ -97,9 +104,11 @@ public class CourseController {
         }
     }
 
+
+
     @DeleteMapping("{id}")
     @Operation(summary = "강의 삭제", security = {@SecurityRequirement(name = "bearerAuth")})
-    public ResponseEntity<?> deleteCourse(@PathVariable Long id) {
+    public ResponseEntity<?> deleteCourse(@PathVariable Long id){
         try {
             courseService.deleteCourse(id);
             return ResponseEntity.ok("삭제완료");
