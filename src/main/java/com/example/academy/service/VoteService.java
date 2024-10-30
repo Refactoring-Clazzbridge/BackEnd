@@ -150,20 +150,14 @@ public class VoteService {
           .setOccupancyRate(
               Math.round(count * 1.0 / voteResponsesForVote.size() * 100) + "%");
       voteOptionInfos.get(i).setVotes(String.valueOf(count));
+
+      Optional<VoteOption> voteOption = voteOptionRepository.findByVoteIdAndOptionText(vote.getId(), voteOptions.get(i).getOptionText());
+      voteOption.get().getId();
+
+      getVoteInfoDTO.getVoteOptionInfoList().get(i).setRank(voteOption.get().getId());
     }
 
-    // 투표 결과 순위 설정
-    voteOptionInfos.sort((o1, o2) -> Integer.compare(Integer.parseInt(o2.getVotes()),
-        Integer.parseInt(o1.getVotes())));
 
-    for (int i = 0; i < voteOptionInfos.size(); i++) {
-      if (i > 0 && voteOptionInfos.get(i).getVotes()
-          .equals(voteOptionInfos.get(i - 1).getVotes())) {
-        voteOptionInfos.get(i).setRank(voteOptionInfos.get(i - 1).getRank());
-      } else {
-        voteOptionInfos.get(i).setRank(i + 1);
-      }
-    }
     // 투표 결과 설정
     return getVoteInfoDTO;
   }

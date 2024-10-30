@@ -2,12 +2,14 @@ package com.example.academy.service;
 
 import com.example.academy.domain.Classroom;
 import com.example.academy.domain.Course;
+import com.example.academy.domain.StudentCourse;
 import com.example.academy.dto.course.CourseAddDTO;
 import com.example.academy.dto.course.CourseTitleDTO;
 import com.example.academy.dto.course.CourseUpdateDTO;
 import com.example.academy.dto.course.GetCourseDTO;
 import com.example.academy.repository.mysql.ClassroomRepository;
 import com.example.academy.repository.mysql.CourseRepository;
+import com.example.academy.repository.mysql.StudentCourseRepository;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -24,10 +26,13 @@ public class CourseService {
 
   private final CourseRepository courseRepository;
   private final ClassroomRepository classroomRepository;
+  private final StudentCourseRepository studentCourseRepository;
 
-  public CourseService(CourseRepository courseRepository, ClassroomRepository classroomRepository) {
+  public CourseService(CourseRepository courseRepository, ClassroomRepository classroomRepository,
+      StudentCourseRepository studentCourseRepository) {
     this.courseRepository = courseRepository;
     this.classroomRepository = classroomRepository;
+    this.studentCourseRepository = studentCourseRepository;
   }
 
   public List<CourseTitleDTO> getCourseTitle() {
@@ -50,13 +55,17 @@ public class CourseService {
     long restDate = ChronoUnit.DAYS.between(now,course.getEndDate());
     //총 일 수
     long totalDate = ChronoUnit.DAYS.between(course.getStartDate(), course.getEndDate());
+
+    List<StudentCourse> studentCourses =  studentCourseRepository.findByCourse(course);
+    int size = studentCourses.size();
+
     List dates = new ArrayList();
     dates.add(checkDate);
     dates.add(totalDate);
     dates.add(course.getStartDate());
     dates.add(course.getEndDate());
     dates.add(restDate);
-
+    dates.add(size);
     return dates;
   }
 
