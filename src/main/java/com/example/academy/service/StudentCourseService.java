@@ -18,6 +18,7 @@ import com.example.academy.repository.mysql.SubmissionRepository;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,9 +86,14 @@ public class StudentCourseService {
             StudentDTO studentDTO = MemberResponseMapper.toStudentDTO(studentCourse.getStudent());
 
             // 각 수강생의 과제 제출 상태를 확인하여 설정
-            boolean isSubmitted = submissionRepository.findByIdStudentCourseIdAndIdAssignmentId(
-                studentCourse.getId(), assignmentId).isPresent();
-            studentDTO.setSubmitted(isSubmitted);
+            Optional<Submission> submission = submissionRepository.findByIdStudentCourseIdAndIdAssignmentId(
+                studentCourse.getId(), assignmentId);
+
+            if (submission.isPresent()) {
+                studentDTO.setSubmitted(true);
+                studentDTO.setContent(submission.get().getContent());
+                studentDTO.setSubmissionDate(submission.get().getSubmissionDate());
+            }
 
             // studentDTO를 리스트에 추가
             studentDTOs.add(studentDTO);

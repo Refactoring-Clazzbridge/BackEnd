@@ -1,5 +1,6 @@
 package com.example.academy.dto.member;
 
+import java.time.LocalDate;
 import lombok.Builder;
 import lombok.Data;
 
@@ -8,6 +9,8 @@ public class StudentDTO {
 
     private String name;
     private String avatarImage;
+    private String content;
+    private LocalDate submissionDate;
     private boolean submitted;
 
     @Builder
