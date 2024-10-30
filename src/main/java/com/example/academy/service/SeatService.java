@@ -181,9 +181,13 @@ public class SeatService {
         .collect(Collectors.toList());
   }
 
-  public Optional<SeatListDTO> getSeatStatusByMemberId(String memberId) {
-    Optional<Seat> seat = seatRepository.findByMember_MemberId(memberId);
-    return seat.map(this::convertSeatToDTO);
+  public Optional<SeatListDTO> getSeatStatusByMemberId(Long memberId) {
+    Optional<Seat> seat = seatRepository.findByMemberId(memberId);
+    if (seat.isPresent()){
+      return seat.map(this::convertSeatToDTO);
+    }else{
+      return Optional.empty();
+    }
   }
 
 
@@ -224,5 +228,12 @@ public class SeatService {
       );
     }
     return new SeatListDTO(seat.getId(), seat.getSeatNumber(), seat.getIsExist(), seat.getIsOnline(), memberDTO);
+  }
+
+  public void updateOnlineStatus(Long seatId, boolean isOnline) {
+    Seat seat = seatRepository.findById(seatId)
+        .orElseThrow(() -> new EntityNotFoundException("Seat not found with id: " + seatId));
+    seat.setIsOnline(isOnline);
+    seatRepository.save(seat);
   }
 }

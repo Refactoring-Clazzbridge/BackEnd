@@ -15,6 +15,8 @@ public class SeatListDTO {
   private Boolean isOnline = false;
   private MemberDTO member;
 
+  public SeatListDTO() {
+  }
 
   public SeatListDTO(Long id, String seatNumber, Boolean isExist, Boolean isOnline, MemberDTO member) {
     this.id = id;

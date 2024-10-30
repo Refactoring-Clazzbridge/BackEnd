@@ -74,9 +74,14 @@ public class QuestionService {
     Question question = questionRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("존재하지 않는 질문입니다 ID: " + id));
 
+    // 답변이 있는지 확인하여 isSolved 값 설정
+    boolean isSolved = question.getAnswers() != null && !question.getAnswers().isEmpty();
+
     // 연관된 답변도 조회
     List<AnswerReadDTO> answers = answerService.getAnswersByQuestionId(id);
-    return questionMapper.questionToQuestionDetailReadDTO(question, answers);
+
+    // isSolved 값을 함께 전달
+    return questionMapper.questionToQuestionDetailReadDTO(question, isSolved, answers);
   }
 
   public QuestionReadDTO createQuestion(QuestionCreateDTO questionCreateDTO) {
@@ -135,6 +140,9 @@ public class QuestionService {
         .map(question -> {
           StudentCourse studentCourse = question.getStudentCourse();
 
+          // 답변이 있는지 확인하여 isSolved 설정
+          boolean isSolved = question.getAnswers() != null && !question.getAnswers().isEmpty();
+
           return new QuestionDetailReadDTO(
               question.getId(),
               studentCourse.getStudent().getName(),   // 학생 이름
@@ -142,13 +150,14 @@ public class QuestionService {
               studentCourse.getCourse().getId(),      // 강의 ID (title 대신 id로 변경)
               question.getContent(),
               question.isRecommended(),
+              isSolved,
               question.getCreatedAt(),
-              question.getAiAnswer(),
               question.getAnswers().stream()
                   .map(answer -> new AnswerReadDTO(
                       answer.getId(),
                       answer.getContent(),
                       answer.getTeacher() != null ? answer.getTeacher().getName() : null,
+                      answer.getTeacher() != null ? answer.getTeacher().getId() : null,
                       answer.getCreatedAt()
                   ))
                   .collect(Collectors.toList())
