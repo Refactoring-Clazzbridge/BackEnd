@@ -143,6 +143,10 @@ public class PostService {
         if (postDTO.getCourseId() != null && postDTO.getCourseId() != 0) {
             // 학생 강의 조회, 관리자의 경우 강의가 없을 수 있음
             if (!member.isAdmin()) {
+                if (member.getMemberType().getType().equals(MemberRole.ROLE_TEACHER.name())) {
+                    course = courseRepository.findByInstructor_Id(member.getId())
+                        .orElseThrow(() -> new NotFoundException("배정 받은 강의가 없습니다."));
+                }
                 StudentCourse studentCourse = studentCourseRepository.findByStudentId(
                     member.getId());
                 if (studentCourse != null) {
