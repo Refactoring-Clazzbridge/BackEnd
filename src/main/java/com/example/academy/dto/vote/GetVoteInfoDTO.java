@@ -35,6 +35,6 @@ public class GetVoteInfoDTO {
     private String optionText;
     private String occupancyRate;
     private String votes;
-    private int rank;
+    private Long rank;
   }
 }
