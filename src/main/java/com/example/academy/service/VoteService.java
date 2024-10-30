@@ -24,6 +24,7 @@ import com.example.academy.repository.mysql.VoteRepository;
 import com.example.academy.repository.mysql.VoteResponseRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import javax.persistence.NonUniqueResultException;
@@ -149,20 +150,14 @@ public class VoteService {
           .setOccupancyRate(
               Math.round(count * 1.0 / voteResponsesForVote.size() * 100) + "%");
       voteOptionInfos.get(i).setVotes(String.valueOf(count));
+
+      Optional<VoteOption> voteOption = voteOptionRepository.findByVoteIdAndOptionText(vote.getId(), voteOptions.get(i).getOptionText());
+      voteOption.get().getId();
+
+      getVoteInfoDTO.getVoteOptionInfoList().get(i).setRank(voteOption.get().getId());
     }
 
-    // 투표 결과 순위 설정
-    voteOptionInfos.sort((o1, o2) -> Integer.compare(Integer.parseInt(o2.getVotes()),
-        Integer.parseInt(o1.getVotes())));
 
-    for (int i = 0; i < voteOptionInfos.size(); i++) {
-      if (i > 0 && voteOptionInfos.get(i).getVotes()
-          .equals(voteOptionInfos.get(i - 1).getVotes())) {
-        voteOptionInfos.get(i).setRank(voteOptionInfos.get(i - 1).getRank());
-      } else {
-        voteOptionInfos.get(i).setRank(i + 1);
-      }
-    }
     // 투표 결과 설정
     return getVoteInfoDTO;
   }
@@ -212,6 +207,11 @@ public class VoteService {
     LocalDateTime now = LocalDateTime.now();
     List<Vote> votes = voteRepository.findAllWithCourseAndInstructor();
 
+    CustomUserDetails user = authService.getAuthenticatedUser();
+
+    Member member = memberRepository.findById(user.getUserId())
+        .orElseThrow(PostBadRequestException::new);
+
     // 상태 업데이트
     for (Vote vote : votes) {
       boolean isExpired = now.isAfter(vote.getEndDate()) || now.isBefore(vote.getStartDate());
@@ -220,13 +220,31 @@ public class VoteService {
     }
 
     List<GetAllVoteDTO> getAllVoteDTOS = new ArrayList<>();
-    for (Vote vote : votes) {
-      getAllVoteDTOS.add(new GetAllVoteDTO(vote.getId(), vote.getCourse().getTitle()
-          , vote.getTitle(), vote.getDescription()
-          , vote.getStartDate(), vote.getEndDate(), vote.getIsExpired()));
+    if(member.getMemberType().getType().equalsIgnoreCase(String.valueOf(MemberRole.ROLE_TEACHER))) {
+       Optional<Course> course = courseRepository.findByInstructor_Id(member.getId());
+      List<Vote> votes1 =  voteRepository.findByCourse(course.get());
+      for (Vote vote : votes1) {
+        getAllVoteDTOS.add(new GetAllVoteDTO(vote.getId(), vote.getCourse().getTitle()
+            , vote.getTitle(), vote.getDescription()
+            , vote.getStartDate(), vote.getEndDate(), vote.getIsExpired()));
+      }
+    } else if (member.getMemberType().getType().equalsIgnoreCase(String.valueOf(MemberRole.ROLE_STUDENT))) {
+      StudentCourse studentCourse = studentCourseRepository.findByStudent(member);
+      List<Vote> votes2 =  voteRepository.findByCourse(studentCourse.getCourse());
+      for (Vote vote : votes2) {
+        getAllVoteDTOS.add(new GetAllVoteDTO(vote.getId(), vote.getCourse().getTitle()
+            , vote.getTitle(), vote.getDescription()
+            , vote.getStartDate(), vote.getEndDate(), vote.getIsExpired()));
+      }
+    } else {
+      for (Vote vote : votes) {
+        getAllVoteDTOS.add(new GetAllVoteDTO(vote.getId(), vote.getCourse().getTitle()
+            , vote.getTitle(), vote.getDescription()
+            , vote.getStartDate(), vote.getEndDate(), vote.getIsExpired()));
+      }
     }
     //투표 시작날짜가 현재보다 빠르고 종료날짜가 느린 값들은 Ture 아니면 false;
-    return getAllVoteDTOS;
+    return getAllVoteDTOS.stream().sorted(Comparator.comparing(GetAllVoteDTO::getId).reversed()).toList();
   }
 
   public GetVoteDTO getVote(Long id) {

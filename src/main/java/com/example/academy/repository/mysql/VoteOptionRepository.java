@@ -14,6 +14,7 @@ public interface VoteOptionRepository extends JpaRepository<VoteOption, Long> {
   Optional<VoteOption> findByOptionText(String optionText); // 투표로 조회
 
   List<VoteOption> findByVote(Vote vote);
+  Optional<VoteOption> findByVoteIdAndOptionText(Long voteId, String optionText);
 
   boolean existsByOptionText(String optionText);
 

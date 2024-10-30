@@ -32,20 +32,20 @@ public class AssignmentService {
     private final CourseRepository courseRepository;
     private final StudentCourseRepository studentCourseRepository;
     private final AuthService authService;
-    private final FileUploadService fileUploadService;
 
     public AssignmentService(AssignmentRepository assignmentRepository,
         CourseRepository courseRepository, AuthService authService,
-        StudentCourseRepository studentCourseRepository, FileUploadService fileUploadService) {
+        StudentCourseRepository studentCourseRepository) {
         this.assignmentRepository = assignmentRepository;
         this.courseRepository = courseRepository;
         this.authService = authService;
         this.studentCourseRepository = studentCourseRepository;
-        this.fileUploadService = fileUploadService;
     }
 
     public List<AssignmentResponseDTO> getAllAssignments() {
-        return AssignmentMapper.toDtoList(assignmentRepository.findAll());
+        return AssignmentMapper.toDtoList(assignmentRepository.findAll()).stream()
+            .sorted(Comparator.comparing(AssignmentResponseDTO::getAssignmentId).reversed())
+            .collect(Collectors.toList());
     }
 
     public List<AssignmentResponseDTO> getAssignmentsByCourseId(Long courseId) {
