@@ -4,14 +4,17 @@ package com.example.academy.service;
 import com.example.academy.domain.Course;
 import com.example.academy.domain.Member;
 import com.example.academy.domain.StudentCourse;
+import com.example.academy.dto.member.GetChatDetailMemberDTO;
 import com.example.academy.dto.member.GetDetailMemberDTO;
 import com.example.academy.dto.member.GetMemberDTO;
+import com.example.academy.dto.member.GetMemberForChatDTO;
 import com.example.academy.repository.mysql.CourseRepository;
 import com.example.academy.repository.mysql.MemberRepository;
 import com.example.academy.repository.mysql.StudentCourseRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -83,6 +86,21 @@ public class MemberListService {
     return getDetailMemberDTO;
   }
 
+
+
+  public GetChatDetailMemberDTO getMemberForChat(Long memberId) {
+    // Member 조회
+    Member member = memberRepository.findById(memberId)
+        .orElseThrow(() -> new NoSuchElementException("Member not found with ID: " + memberId));
+
+    String memberName = member.getName();
+    String avatarImageUrl = member.getAvatarImage().getAvatarImageUrl();
+
+    return new GetChatDetailMemberDTO(memberName,
+        avatarImageUrl);
+  }
+
+
   public List<GetMemberDTO> getAllMembersWithCourses() {
     List<Member> members = memberRepository.findAll(); // 전체 멤버 조회
     List<GetMemberDTO> memberDTOs = new ArrayList<>();
@@ -118,6 +136,44 @@ public class MemberListService {
           member.getMemberType().getType(),
           member.getAvatarImage(),
           courseTitle
+      );
+
+      // DTO 리스트에 추가
+      memberDTOs.add(dto);
+    }
+
+    return memberDTOs;
+  }
+
+  public List<GetMemberForChatDTO> getAllMembers() {
+    List<Member> members = memberRepository.findAll(); // 전체 멤버 조회
+    List<GetMemberForChatDTO> memberDTOs = new ArrayList<>();
+
+    // 각 멤버에 대해 코스 정보 조회 및 DTO로 변환
+    for (Member member : members) {
+      Long courseId = null;
+      if (Objects.equals(member.getMemberType().getType(), "ROLE_STUDENT")) {
+        StudentCourse studentCourse = studentCourseRepository.findByStudentId(member.getId());
+        courseId = studentCourse.getId();
+      } else if (Objects.equals(member.getMemberType().getType(), "ROLE_TEACHER")) {
+        if (courseRepository.findByInstructorId(member.getId()).isPresent()) {
+          Course course = courseRepository.findByInstructorId(member.getId()).get();
+          courseId = course.getId();
+        } else {
+          courseId = 0L;
+        }
+      } else if (Objects.equals(member.getMemberType().getType(), "ROLE_ADMIN")) {
+        courseId = 0L;
+      }
+
+      // GetMemberForChatDTO 생성 및 값 설정
+      GetMemberForChatDTO dto = new GetMemberForChatDTO(
+          member.getId(),
+          member.getMemberId(),
+          member.getName(),
+          member.getAvatarImage().getAvatarImageUrl(),
+          member.getMemberType().getType(),
+          courseId.toString()
       );
 
       // DTO 리스트에 추가

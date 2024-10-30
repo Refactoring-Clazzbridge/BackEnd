@@ -1,11 +1,13 @@
 package com.example.academy.controller;
 
+import com.example.academy.dto.member.GetChatDetailMemberDTO;
 import com.example.academy.dto.member.GetDetailMemberDTO;
 import com.example.academy.dto.member.GetMemberDTO;
+import com.example.academy.dto.member.GetMemberForChatDTO;
 import com.example.academy.dto.member.MemberSignUpDTO;
 import com.example.academy.dto.member.MemberUpdateDTO;
-import com.example.academy.service.MemberManageService;
 import com.example.academy.service.MemberListService;
+import com.example.academy.service.MemberManageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
@@ -28,14 +30,15 @@ public class MemberController {
   private final MemberListService memberListService;
   private final MemberManageService memberManageService;
 
-  public MemberController(MemberListService memberListService, MemberManageService memberManageService) {
+  public MemberController(MemberListService memberListService,
+      MemberManageService memberManageService) {
     this.memberListService = memberListService;
     this.memberManageService = memberManageService;
   }
 
   @GetMapping("/check/{userId}")
-  @Operation(summary = "강의 확인", security = {@SecurityRequirement(name = "bearerAuth")})
-  public ResponseEntity<?> courseCheck(@PathVariable Long userId) {
+  @Operation(summary = "권한 확인", security = {@SecurityRequirement(name = "bearerAuth")})
+  public ResponseEntity<?> roleCheck(@PathVariable Long userId) {
     return ResponseEntity.ok(memberListService.getCheckRole(userId));
   }
 
@@ -53,6 +56,7 @@ public class MemberController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류 발생");
     }
   }
+
   @Operation(summary = "회원 조회", security = {@SecurityRequirement(name = "bearerAuth")})
   @GetMapping("/{id}")
   public ResponseEntity<GetDetailMemberDTO> getMemberWithCourseInfo(@PathVariable Long id) {
@@ -66,6 +70,14 @@ public class MemberController {
     List<GetMemberDTO> memberDTOs = memberListService.getAllMembersWithCourses();
     return ResponseEntity.ok(memberDTOs);
   }
+
+  @Operation(summary = "관리자 포함 전체 회원 조회", security = {@SecurityRequirement(name = "bearerAuth")})
+  @GetMapping("/all")
+  public ResponseEntity<List<GetMemberForChatDTO>> getAllMembers() {
+    List<GetMemberForChatDTO> memberDTOs = memberListService.getAllMembers();
+    return ResponseEntity.ok(memberDTOs);
+  }
+
   @Operation(summary = "회원 변경", security = {@SecurityRequirement(name = "bearerAuth")})
   @PutMapping
   public ResponseEntity<String> updateMember(@RequestBody MemberUpdateDTO updateDTO) {
@@ -85,6 +97,13 @@ public class MemberController {
   public ResponseEntity<String> deleteMembers(@PathVariable Long id) {
     memberListService.deleteMember(id);
     return ResponseEntity.ok().body("삭제 완료");
+  }
+
+  @Operation(summary = "채팅용 회원 조회", security = {@SecurityRequirement(name = "bearerAuth")})
+  @GetMapping("/chat/{id}")
+  public ResponseEntity<GetChatDetailMemberDTO> getMemberForChat(@PathVariable Long id) {
+    GetChatDetailMemberDTO memberDTO = memberListService.getMemberForChat(id);
+    return ResponseEntity.ok(memberDTO);
   }
 }
 
