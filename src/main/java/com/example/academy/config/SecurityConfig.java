@@ -54,7 +54,7 @@ public class SecurityConfig {
             .formLogin().disable()
             .httpBasic().disable()
             .authorizeHttpRequests(auth -> auth
-                .regexMatchers("/api/login", "/api/auth.*", "/swagger-ui.*", "/v3/api-docs.*")
+                .regexMatchers("/api/login","/api/logout", "/api/auth.*", "/swagger-ui.*", "/v3/api-docs.*")
                 .permitAll()
                 .regexMatchers("/api/.*", "/admin").hasAnyRole("ADMIN", "STUDENT", "TEACHER")
                 .anyRequest().authenticated());
