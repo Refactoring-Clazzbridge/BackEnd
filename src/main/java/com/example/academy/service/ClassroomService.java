@@ -67,15 +67,11 @@ public class ClassroomService {
 
   public List<Classroom> getAllClassroom(){
     LocalDate now = LocalDate.now();
+    List<Classroom> classrooms = classroomRepository.findAll();
     List<Course> courses =   courseRepository.findAll();
-    for (Course cours1 : courses) {
-      if (now.isAfter(cours1.getEndDate()) && now.isAfter(cours1.getStartDate())
-          // 현재 > 종료날짜 , 현재 > 시작날짜
-      || now.isBefore(cours1.getStartDate())) {
-          // 현재 < 시작날짜
-        cours1.getClassroom().setIsOccupied(false);
-      }
-      courseRepository.save(cours1);
+    for (Classroom classroom : classrooms) {
+      classroom.setIsOccupied(false);
+      classroomRepository.save(classroom);
     }
 
     for (Course cours2 : courses) {
@@ -85,8 +81,6 @@ public class ClassroomService {
       }
       courseRepository.save(cours2);
     }
-  //강의 시작날짜가 현재보다 빠르고 종료날짜가 느린 값들은 Ture 아니면 false;
-
     return classroomRepository.findAll();
   }
 
