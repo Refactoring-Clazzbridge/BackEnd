@@ -85,6 +85,7 @@ public class PostController {
         @SecurityRequirement(name = "bearerAuth")})
     @GetMapping("/{courseId}/free")
     public ResponseEntity<List<PostResponseDTO>> getFreePostsByCourseId(
+        @RequestParam(required = false) String type,
         @PathVariable(value = "courseId") Long courseId) {
         List<PostResponseDTO> postDTOs = postService.getCourseFreePost(courseId);
         return ResponseEntity.ok().body(postDTOs);
@@ -128,5 +129,6 @@ public class PostController {
         postService.delete(ids);
         return HttpStatus.OK;
     }
+
 
 }
