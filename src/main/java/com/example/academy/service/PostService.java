@@ -26,6 +26,8 @@ import com.example.academy.repository.mysql.StudentCourseRepository;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -277,12 +279,21 @@ public class PostService {
         Course course = courseRepository.findById(courseId)
             .orElseThrow(() -> new NotFoundException("해당 강의가 없습니다."));
 
+        // 공지사항 타입과 courseId가 null인 게시글 가져오기
+        BoardType announcementType = boardTypeRepository.findByType(BoardTypes.공지사항.name())
+            .orElseThrow(() -> new NotFoundException("공지사항 타입이 없습니다."));
+        List<Post> generalAnnouncements = postRepository.findByCourseIsNullAndBoardType(
+            announcementType);
+
         List<Post> posts = postRepository.findByCourse(course);
 
         if (!posts.isEmpty()) {
-            return postResponseMapper.toDtoList(posts).stream()
-                .sorted(Comparator.comparing(PostResponseDTO::getId).reversed())
-                .toList();
+            return Stream.concat(generalAnnouncements.stream(), posts.stream())
+                .map(postResponseMapper::toDto)
+                .sorted(Comparator.comparing((PostResponseDTO post) ->
+                        post.getCourseId() == null ? 0 : 1)  // courseId가 null인 게시글을 상위로 배치
+                    .thenComparing(PostResponseDTO::getId, Comparator.reverseOrder()))
+                .collect(Collectors.toList());
         } else {
             return Collections.emptyList(); // 빈 리스트 반환
         }
@@ -331,12 +342,23 @@ public class PostService {
             course = studentCourse.getCourse();
         }
 
-        // 강의에 맞는 게시글 목록을 가져와서 공지사항만 필터링하여 반환
-        List<Post> notifications = postRepository.findByCourse(course);
-        return notifications.stream()
+        // 공지사항 타입과 courseId가 null인 게시글 가져오기
+        BoardType announcementType = boardTypeRepository.findByType(BoardTypes.공지사항.name())
+            .orElseThrow(() -> new NotFoundException("공지사항 타입이 없습니다."));
+        List<Post> generalAnnouncements = postRepository.findByCourseIsNullAndBoardType(
+            announcementType);
+
+        // 해당 강의의 공지사항 게시글 가져오기
+        List<Post> courseNotifications = postRepository.findByCourse(course).stream()
             .filter(post -> post.getBoardType().getType().equals(BoardTypes.공지사항.name()))
-            .map(postResponseMapper::toDto)
-            .sorted(Comparator.comparing(PostResponseDTO::getId).reversed())
             .toList();
+
+        // 두 리스트를 합쳐서 공지사항 게시글을 상위에 배치
+        return Stream.concat(generalAnnouncements.stream(), courseNotifications.stream())
+            .map(postResponseMapper::toDto)
+            .sorted(Comparator.comparing((PostResponseDTO post) ->
+                    post.getCourseId() == null ? 0 : 1)  // courseId가 null인 게시글을 상위로 배치
+                .thenComparing(PostResponseDTO::getId, Comparator.reverseOrder()))
+            .collect(Collectors.toList());
     }
 }

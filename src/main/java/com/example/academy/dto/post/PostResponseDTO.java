@@ -18,6 +18,7 @@ public class PostResponseDTO {
     private String authorName;
     private String boardType;
     private String courseTitle;
+    private Long courseId;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date createdAt;
@@ -28,7 +29,7 @@ public class PostResponseDTO {
     @Builder
     public PostResponseDTO(Long id, String title, String content, String authorName,
         String boardType,
-        String courseTitle, Date createdAt, Long authorId) {
+        String courseTitle, Date createdAt, Long authorId, Long courseId) {
         this.id = id;
         this.title = title;
         this.content = content;
@@ -37,6 +38,11 @@ public class PostResponseDTO {
         this.boardType = boardType;
         this.courseTitle = courseTitle;
         this.createdAt = createdAt;
+        this.courseId = courseId;
+    }
+
+    public Long getCourseId() {
+        return this.courseId != null ? this.courseId : null;  // courseId가 null이면 null을 반환
     }
 
 }

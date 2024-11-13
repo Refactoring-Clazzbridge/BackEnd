@@ -21,12 +21,13 @@ public class PostResponseMapper {
             .content(post.getContent())
             .boardType(post.getBoardType().getType())
             .courseTitle(post.getCourse() != null ? post.getCourse().getTitle() : null)
+            .courseId(post.getCourse() != null ? post.getCourse().getId() : null)
             .createdAt(post.getCreatedAt())
             .build();
     }
 
     public List<PostResponseDTO> toDtoList(List<Post> posts) {
-       
+
         return posts.stream()
             .map(todo -> toDto(todo))
             .collect(Collectors.toList());
