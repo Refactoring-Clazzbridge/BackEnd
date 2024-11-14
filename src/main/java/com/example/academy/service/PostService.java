@@ -71,7 +71,7 @@ public class PostService {
     public List<PostResponseDTO> findAllPosts() {
 //        List<Post> posts = postRepository.findAll();
 
-        List<Post> posts = postRepository.findAllPostsOrderByBoardType();
+        List<Post> posts = postRepository.findAllPostsOrderByPriority();
 
 //        return postResponseMapper.toDtoList(posts).stream()
 //            .sorted(Comparator.comparing(PostResponseDTO::getId).reversed()).toList();
