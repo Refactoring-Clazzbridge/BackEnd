@@ -67,10 +67,10 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     String role = auth.getAuthority();
 
     // 인증된 사용자에 대한 JWT 토큰 생성, 3600 * 200 => 720000 => 720초
-    String token = jwtUtil.createJWT(userId, role, 60 * 60 * 200L);
+    String token = jwtUtil.createJWT(userId, role, 1000L * 60 * 15);
 
     // 인증된 사용자에 대한 Refresh Token 및 쿠키 생성 7200000 => 7200초
-    String refreshToken = jwtUtil.createRefreshJWT(userId, role, 60 * 60 * 2000L);
+    String refreshToken = jwtUtil.createRefreshJWT(userId, role, 1000L * 60 * 10080);
     Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
     // 클라이언트 JavaScript에서 접근 불가
     refreshTokenCookie.setSecure(true);
