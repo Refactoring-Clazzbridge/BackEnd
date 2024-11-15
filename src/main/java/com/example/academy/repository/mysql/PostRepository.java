@@ -25,4 +25,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findAllPostsOrderByBoardType();
 
     List<Post> findByCourseIsNullAndBoardType(BoardType announcementType);
+
+    @Query("SELECT p FROM Post p " +
+        "LEFT JOIN p.course c " +
+        "LEFT JOIN p.boardType bt " +
+        "ORDER BY " +
+        "CASE WHEN c IS NULL THEN 0 ELSE 1 END, " +             // course가 없는 글을 우선 표시
+        "CASE WHEN bt.type = '공지사항' THEN 0 ELSE 1 END, " +    // '공지사항' 게시글을 다음에 표시
+        "p.id DESC")
+        // id로 내림차순 정렬
+    List<Post> findAllPostsOrderByPriority();
 }

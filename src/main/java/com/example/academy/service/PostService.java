@@ -71,7 +71,7 @@ public class PostService {
     public List<PostResponseDTO> findAllPosts() {
 //        List<Post> posts = postRepository.findAll();
 
-        List<Post> posts = postRepository.findAllPostsOrderByBoardType();
+        List<Post> posts = postRepository.findAllPostsOrderByPriority();
 
 //        return postResponseMapper.toDtoList(posts).stream()
 //            .sorted(Comparator.comparing(PostResponseDTO::getId).reversed()).toList();
@@ -290,9 +290,15 @@ public class PostService {
         if (!posts.isEmpty()) {
             return Stream.concat(generalAnnouncements.stream(), posts.stream())
                 .map(postResponseMapper::toDto)
-                .sorted(Comparator.comparing((PostResponseDTO post) ->
-                        post.getCourseId() == null ? 0 : 1)  // courseId가 null인 게시글을 상위로 배치
-                    .thenComparing(PostResponseDTO::getId, Comparator.reverseOrder()))
+                .sorted(Comparator
+                    .comparing((PostResponseDTO post) -> post.getCourseId() == null ? 0
+                        : 1) // courseId가 null인 게시글을 상위로 배치
+                    .thenComparing(
+                        (PostResponseDTO post) -> BoardTypes.공지사항.name().equals(post.getBoardType())
+                            ? 0
+                            : 1) // boardType이 '공지사항'인 게시글을 그 다음에 배치
+                    .thenComparing(PostResponseDTO::getId,
+                        Comparator.reverseOrder())) // ID 내림차순으로 정렬
                 .collect(Collectors.toList());
         } else {
             return Collections.emptyList(); // 빈 리스트 반환
