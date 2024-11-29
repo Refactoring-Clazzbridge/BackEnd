@@ -8,10 +8,12 @@ import com.example.academy.dto.member.GetChatDetailMemberDTO;
 import com.example.academy.dto.member.GetDetailMemberDTO;
 import com.example.academy.dto.member.GetMemberDTO;
 import com.example.academy.dto.member.GetMemberForChatDTO;
+import com.example.academy.dto.vote.GetAllVoteDTO;
 import com.example.academy.repository.mysql.CourseRepository;
 import com.example.academy.repository.mysql.MemberRepository;
 import com.example.academy.repository.mysql.StudentCourseRepository;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -142,7 +144,7 @@ public class MemberListService {
       memberDTOs.add(dto);
     }
 
-    return memberDTOs;
+    return memberDTOs.stream().sorted(Comparator.comparing(GetMemberDTO::getId).reversed()).toList();
   }
 
   public List<GetMemberForChatDTO> getAllMembers() {

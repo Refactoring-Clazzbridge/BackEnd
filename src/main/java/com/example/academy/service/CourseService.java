@@ -9,6 +9,7 @@ import com.example.academy.dto.course.CourseUpdateDTO;
 import com.example.academy.dto.course.GetCourseDTO;
 import com.example.academy.dto.course.SelectCourseDTO;
 import com.example.academy.dto.member.CustomUserDetails;
+import com.example.academy.dto.member.GetMemberDTO;
 import com.example.academy.enums.MemberRole;
 import com.example.academy.exception.common.NotFoundException;
 import com.example.academy.repository.mysql.ClassroomRepository;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -79,7 +81,7 @@ public class CourseService {
     public List<GetCourseDTO> getAllCourse() {
         List<Course> courses = courseRepository.findAll();  // Lazy로 인해 N+1 문제가 발생할 수 있음. 이를 해결하려면 JOIN FETCH 사용 고려.
 
-        return courses.stream()
+        List<GetCourseDTO> courseDTOS = courses.stream()
             .map(course -> new GetCourseDTO(
                 course.getId(),
                 course.getInstructor() != null ? course.getInstructor().getName() : "",
@@ -92,6 +94,8 @@ public class CourseService {
                 course.getEndDate(),
                 course.getLayoutImageUrl()))
             .collect(Collectors.toList());
+
+        return courseDTOS.stream().sorted(Comparator.comparing(GetCourseDTO::getId).reversed()).toList();
     }
 
     public List<GetCourseDTO> getCourse(Long id) throws Exception {
